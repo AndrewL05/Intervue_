@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/plus-jakarta-sans';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+
+:root {
+  --ink-950: #0C0A09;
+  --ink-900: #15120F;
+  --ink-800: #1C1917;
+  --ink-700: #2A2522;
+  --ink-600: #3D3835;
+  --paper: #FAF7F2;
+  --paper-dim: #A8A29E;
+  --paper-faint: #5C5753;
+  --ember: #FF6B35;
+  --ember-soft: #FF8A5C;
+  --moss: #7E9E5C;
+  --crimson: #B23A3A;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--ink-950);
+  color-scheme: dark;
+}
+
+body {
+  background: var(--ink-950);
+  color: var(--paper);
+  font-family: 'Plus Jakarta Sans Variable', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--ink-900); }
+::-webkit-scrollbar-thumb { background: var(--ink-600); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--paper-faint); }
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--ember);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Selection */
+::selection {
+  background: rgba(255, 107, 53, 0.25);
+  color: var(--paper);
+}
+
+/* Grain overlay — injected as a pseudo on body */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+}
+
+/* Utility classes */
+.font-display { font-family: 'Fraunces Variable', Georgia, serif; }
+.font-mono-ui { font-family: 'JetBrains Mono', monospace; }
+
+.text-ember { color: var(--ember); }
+.text-paper { color: var(--paper); }
+.text-paper-dim { color: var(--paper-dim); }
+.bg-ink-950 { background: var(--ink-950); }
+
+/* Ember underline link */
+.link-ember {
+  color: var(--paper-dim);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+.link-ember:hover {
+  color: var(--paper);
+  border-bottom-color: var(--ember);
+}
+
+/* Card surface */
+.surface {
+  background: var(--ink-900);
+  border: 1px solid rgba(250, 247, 242, 0.06);
+  box-shadow: 0 1px 0 rgba(250,247,242,0.04), 0 20px 48px -24px rgba(0,0,0,0.9);
+}
+
+.surface-raised {
+  background: var(--ink-800);
+  border: 1px solid rgba(250, 247, 242, 0.08);
+  box-shadow: 0 1px 0 rgba(250,247,242,0.04), 0 8px 24px -8px rgba(0,0,0,0.7);
+}
