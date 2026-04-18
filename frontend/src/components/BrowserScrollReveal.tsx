@@ -258,7 +258,7 @@ export function BrowserScrollReveal() {
           <div
             style={{
               height: '8px',
-              background: 'radial-gradient(ellipse, rgba(255,107,53,0.18) 0%, transparent 70%)',
+              background: 'radial-gradient(ellipse, rgba(74,222,128,0.15) 0%, transparent 70%)',
               filter: 'blur(6px)',
             }}
           />
