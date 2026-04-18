@@ -16,6 +16,7 @@ class PatchSessionRequest(BaseModel):
     status: SessionStatus | None = None
     started_at: datetime | None = None
     ended_at: datetime | None = None
+    elevenlabs_conversation_id: str | None = None
 
 
 class SessionResponse(BaseModel):
@@ -29,6 +30,8 @@ class SessionResponse(BaseModel):
     interviewer_tone: InterviewerTone
     status: SessionStatus
     question_ids: list[str]
+    elevenlabs_agent_id: str | None
+    elevenlabs_conversation_id: str | None
     created_at: datetime
     started_at: datetime | None
     ended_at: datetime | None
@@ -37,3 +40,8 @@ class SessionResponse(BaseModel):
 class SessionListResponse(BaseModel):
     sessions: list[SessionResponse]
     total: int
+
+
+class AgentUrlResponse(BaseModel):
+    agent_id: str
+    signed_url: str
