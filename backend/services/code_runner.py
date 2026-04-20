@@ -20,6 +20,10 @@ def load_problem(problem_id: str) -> dict | None:
     return _load_all_problems().get(problem_id)
 
 
+def load_all_problems() -> list[dict]:
+    return list(_load_all_problems().values())
+
+
 def aggregate_status(statuses: list[SubmissionStatus]) -> SubmissionStatus:
     if SubmissionStatus.compile_error in statuses:
         return SubmissionStatus.compile_error

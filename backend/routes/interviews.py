@@ -60,7 +60,7 @@ async def create_session(
     session_id = str(result.inserted_id)
     session.id = session_id
 
-    questions: list[Question] = plan_questions(session_id, body.mode, body.role)
+    questions: list[Question] = plan_questions(session_id, body.mode, body.difficulty, body.duration_minutes)
     question_ids: list[str] = []
     if questions:
         q_docs = [q.to_mongo() for q in questions]

@@ -6,19 +6,15 @@ Technical mode: static problem stubs (unchanged).
 
 import json
 import logging
+import random
 import re
 
-from models.interview_session import InterviewMode
+from models.interview_session import Difficulty, InterviewMode
 from models.question import Question, QuestionType
+from services.code_runner import load_all_problems
 from services.llm import chat_complete
 
 logger = logging.getLogger(__name__)
-
-TECHNICAL_QUESTIONS = [
-    {"prompt": "Given an array of integers, find the indices of the two numbers that sum to a target value.", "problem_id": "two-sum"},
-    {"prompt": "Given a string of brackets, determine if the input string is valid (brackets close in correct order).", "problem_id": "valid-parentheses"},
-    {"prompt": "Given an integer array, find the contiguous subarray which has the largest sum and return its sum.", "problem_id": "maximum-subarray"},
-]
 
 _BEHAVIORAL_QUESTION_PROMPT = """\
 Generate exactly {n} distinct behavioral interview questions for a software engineering candidate.
@@ -76,17 +72,41 @@ async def plan_behavioral_questions(session_id: str, duration_minutes: int) -> l
     ]
 
 
-def plan_questions(session_id: str, mode: InterviewMode, role: str) -> list[Question]:
-    """Synchronous question planner for technical/mixed sessions (unchanged)."""
+def _technical_question_count(duration_minutes: int) -> int:
+    if duration_minutes <= 30:
+        return 1
+    if duration_minutes <= 45:
+        return 2
+    return 3
+
+
+def plan_questions(
+    session_id: str,
+    mode: InterviewMode,
+    difficulty: Difficulty | None,
+    duration_minutes: int,
+) -> list[Question]:
+    """Pick random problems from problems.json filtered by difficulty."""
     questions: list[Question] = []
-    if mode in (InterviewMode.technical, InterviewMode.mixed):
-        for i, q in enumerate(TECHNICAL_QUESTIONS[:1]):
-            questions.append(Question(
-                session_id=session_id,
-                order=i,
-                type=QuestionType.technical,
-                prompt=q["prompt"],
-                follow_up_tree=[],
-                coding_problem_id=q["problem_id"],
-            ))
+    if mode not in (InterviewMode.technical, InterviewMode.mixed):
+        return questions
+
+    n = _technical_question_count(duration_minutes)
+    all_problems = load_all_problems()
+    diff_str = difficulty.value if difficulty else Difficulty.medium.value
+    pool = [p for p in all_problems if p.get("difficulty") == diff_str]
+    if not pool:
+        pool = all_problems
+
+    selected = random.sample(pool, min(n, len(pool)))
+
+    for i, problem in enumerate(selected):
+        questions.append(Question(
+            session_id=session_id,
+            order=i,
+            type=QuestionType.technical,
+            prompt=problem["prompt"],
+            follow_up_tree=[],
+            coding_problem_id=problem["id"],
+        ))
     return questions
