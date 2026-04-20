@@ -1,6 +1,12 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
-from models.interview_session import Difficulty, InterviewMode, InterviewerTone, SessionStatus
+from models.interview_session import (
+    BehavioralPersona,
+    Difficulty,
+    InterviewMode,
+    InterviewerTone,
+    SessionStatus,
+)
 
 
 class CreateSessionRequest(BaseModel):
@@ -10,6 +16,11 @@ class CreateSessionRequest(BaseModel):
     difficulty: Difficulty = Difficulty.medium
     duration_minutes: int = Field(default=30, ge=5, le=120)
     interviewer_tone: InterviewerTone = InterviewerTone.neutral
+
+
+class CreateBehavioralSessionRequest(BaseModel):
+    duration_minutes: int = Field(default=30, ge=5, le=120)
+    behavioral_persona: BehavioralPersona = BehavioralPersona.supportive
 
 
 class PatchSessionRequest(BaseModel):
@@ -23,18 +34,19 @@ class SessionResponse(BaseModel):
     id: str
     clerk_user_id: str
     mode: InterviewMode
-    role: str
-    company: str | None
-    difficulty: Difficulty
+    role: str | None = None
+    company: str | None = None
+    difficulty: Difficulty | None = None
     duration_minutes: int
-    interviewer_tone: InterviewerTone
+    interviewer_tone: InterviewerTone | None = None
+    behavioral_persona: BehavioralPersona | None = None
     status: SessionStatus
     question_ids: list[str]
-    elevenlabs_agent_id: str | None
-    elevenlabs_conversation_id: str | None
+    elevenlabs_agent_id: str | None = None
+    elevenlabs_conversation_id: str | None = None
     created_at: datetime
-    started_at: datetime | None
-    ended_at: datetime | None
+    started_at: datetime | None = None
+    ended_at: datetime | None = None
 
 
 class SessionListResponse(BaseModel):

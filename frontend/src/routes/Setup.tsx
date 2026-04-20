@@ -5,18 +5,24 @@ import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import { companies } from '@/lib/mock/companies'
-import { personas } from '@/lib/mock/personas'
+import { personas, behavioralPersonas } from '@/lib/mock/personas'
 import { apiFetch } from '@/lib/api'
 import type { ApiSession } from '@/lib/apiTypes'
-import type { InterviewMode, Difficulty, InterviewerPersona } from '@/lib/types'
+import type { Difficulty, InterviewerPersona, BehavioralPersona } from '@/lib/types'
+
+type InterviewType = 'behavioral' | 'technical' | ''
 
 interface SetupState {
+  interviewType: InterviewType
+  // Behavioral path
+  behavioralPersona: BehavioralPersona | ''
+  // Technical path
   role: string
   company: string
-  mode: InterviewMode | ''
   difficulty: Difficulty | ''
+  technicalPersona: InterviewerPersona | ''
+  // Shared
   durationMinutes: number
-  persona: InterviewerPersona | ''
 }
 
 const ROLES = [
@@ -24,12 +30,6 @@ const ROLES = [
   { id: 'new-grad', label: 'New Grad SWE', hint: 'Core SWE loop, system design intro' },
   { id: 'mid', label: 'Mid-Level SWE', hint: 'System design, technical depth, ownership' },
   { id: 'senior', label: 'Senior SWE', hint: 'System design, leadership, execution' },
-]
-
-const MODES = [
-  { id: 'technical' as InterviewMode, label: 'Technical', hint: 'LeetCode-style coding with voice interviewer' },
-  { id: 'behavioral' as InterviewMode, label: 'Behavioral', hint: 'Voice-led STAR questions and follow-ups' },
-  { id: 'mixed' as InterviewMode, label: 'Mixed', hint: 'Both: behavioral then technical' },
 ]
 
 const DIFFICULTIES = [
@@ -45,14 +45,32 @@ const DURATIONS = [
   { mins: 60, label: '60 min', hint: 'Full loop round' },
 ]
 
-const STEPS = [
-  { id: 1, label: '01', title: 'Your role', subtitle: "What level are you interviewing for?" },
-  { id: 2, label: '02', title: 'Company', subtitle: "Which company should we tailor this for?" },
-  { id: 3, label: '03', title: 'Interview type', subtitle: "What kind of session do you want?" },
-  { id: 4, label: '04', title: 'Difficulty', subtitle: "How hard should we push you?" },
-  { id: 5, label: '05', title: 'Duration', subtitle: "How much time do you have?" },
-  { id: 6, label: '06', title: 'Interviewer', subtitle: "Choose your interviewer's persona." },
+const INTERVIEW_TYPES = [
+  { id: 'behavioral' as InterviewType, label: 'Behavioral', hint: 'Voice-led STAR questions and follow-ups' },
+  { id: 'technical' as InterviewType, label: 'Technical', hint: 'LeetCode-style coding with voice interviewer' },
 ]
+
+function totalSteps(interviewType: InterviewType): number {
+  if (interviewType === 'behavioral') return 3
+  if (interviewType === 'technical') return 6
+  return 1
+}
+
+function stepLabel(step: number, interviewType: InterviewType): { title: string; subtitle: string } {
+  if (step === 1) return { title: 'Interview type', subtitle: 'What kind of session do you want?' }
+  if (interviewType === 'behavioral') {
+    if (step === 2) return { title: 'Duration', subtitle: 'How much time do you have?' }
+    if (step === 3) return { title: 'Interviewer', subtitle: "Choose your interviewer's style." }
+  }
+  if (interviewType === 'technical') {
+    if (step === 2) return { title: 'Your role', subtitle: "What level are you interviewing for?" }
+    if (step === 3) return { title: 'Company', subtitle: "Which company should we tailor this for?" }
+    if (step === 4) return { title: 'Difficulty', subtitle: "How hard should we push you?" }
+    if (step === 5) return { title: 'Duration', subtitle: "How much time do you have?" }
+    if (step === 6) return { title: 'Interviewer', subtitle: "Choose your interviewer's persona." }
+  }
+  return { title: '', subtitle: '' }
+}
 
 function OptionCard({
   selected,
@@ -102,21 +120,31 @@ export function Setup() {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [state, setState] = useState<SetupState>({
+    interviewType: '',
+    behavioralPersona: '',
     role: '',
     company: '',
-    mode: '',
     difficulty: '',
+    technicalPersona: '',
     durationMinutes: 45,
-    persona: '',
   })
 
-  const canAdvance = () => {
-    if (step === 1) return !!state.role
-    if (step === 2) return !!state.company
-    if (step === 3) return !!state.mode
-    if (step === 4) return !!state.difficulty
-    if (step === 5) return !!state.durationMinutes
-    if (step === 6) return !!state.persona
+  const total = totalSteps(state.interviewType)
+  const isFinalStep = step === total
+
+  const canAdvance = (): boolean => {
+    if (step === 1) return !!state.interviewType
+    if (state.interviewType === 'behavioral') {
+      if (step === 2) return !!state.durationMinutes
+      if (step === 3) return !!state.behavioralPersona
+    }
+    if (state.interviewType === 'technical') {
+      if (step === 2) return !!state.role
+      if (step === 3) return !!state.company
+      if (step === 4) return !!state.difficulty
+      if (step === 5) return !!state.durationMinutes
+      if (step === 6) return !!state.technicalPersona
+    }
     return false
   }
 
@@ -126,24 +154,34 @@ export function Setup() {
     try {
       const token = await getToken()
       if (!token) throw new Error('Not authenticated')
-      const roleLabel = ROLES.find((r) => r.id === state.role)?.label ?? state.role
-      const companyName = companies.find((c) => c.id === state.company)?.name ?? state.company
-      const session = await apiFetch<ApiSession>('/api/interviews', token, {
-        method: 'POST',
-        body: JSON.stringify({
-          mode: state.mode,
-          role: roleLabel,
-          company: companyName,
-          difficulty: state.difficulty,
-          duration_minutes: state.durationMinutes,
-          interviewer_tone: state.persona,
-        }),
-      })
-      if (session.mode === 'technical' || session.mode === 'mixed') {
-        navigate(`/interview/${session.id}/technical`)
+
+      let session: ApiSession
+
+      if (state.interviewType === 'behavioral') {
+        session = await apiFetch<ApiSession>('/api/interviews/behavioral', token, {
+          method: 'POST',
+          body: JSON.stringify({
+            duration_minutes: state.durationMinutes,
+            behavioral_persona: state.behavioralPersona,
+          }),
+        })
       } else {
-        navigate(`/interview/${session.id}/behavioral`)
+        const roleLabel = ROLES.find((r) => r.id === state.role)?.label ?? state.role
+        const companyName = companies.find((c) => c.id === state.company)?.name ?? state.company
+        session = await apiFetch<ApiSession>('/api/interviews', token, {
+          method: 'POST',
+          body: JSON.stringify({
+            mode: 'technical',
+            role: roleLabel,
+            company: companyName,
+            difficulty: state.difficulty,
+            duration_minutes: state.durationMinutes,
+            interviewer_tone: state.technicalPersona,
+          }),
+        })
       }
+
+      navigate(`/interview/${session.id}/${session.mode === 'behavioral' ? 'behavioral' : 'technical'}`)
     } catch (err) {
       toast.error('Failed to create session. Is the backend running?')
       console.error(err)
@@ -152,18 +190,36 @@ export function Setup() {
     }
   }
 
-  const currentStepMeta = STEPS[step - 1]
+  const { title, subtitle } = stepLabel(step, state.interviewType)
+  const stepNumLabel = String(step).padStart(2, '0')
+  const totalLabel = String(total).padStart(2, '0')
+  const progressPct = total > 1 ? ((step - 1) / (total - 1)) * 100 : 0
+
+  const summaryRows = state.interviewType === 'behavioral'
+    ? [
+        { label: 'Type', value: 'Behavioral' },
+        { label: 'Duration', value: state.durationMinutes ? `${state.durationMinutes} min` : null },
+        { label: 'Interviewer', value: state.behavioralPersona ? behavioralPersonas.find((p) => p.id === state.behavioralPersona)?.name : null },
+      ]
+    : [
+        { label: 'Type', value: state.interviewType ? 'Technical' : null },
+        { label: 'Role', value: state.role ? ROLES.find((r) => r.id === state.role)?.label : null },
+        { label: 'Company', value: state.company ? companies.find((c) => c.id === state.company)?.name : null },
+        { label: 'Difficulty', value: state.difficulty ? state.difficulty.charAt(0).toUpperCase() + state.difficulty.slice(1) : null },
+        { label: 'Duration', value: state.durationMinutes ? `${state.durationMinutes} min` : null },
+        { label: 'Interviewer', value: state.technicalPersona ? personas.find((p) => p.id === state.technicalPersona)?.name : null },
+      ]
 
   return (
     <div className="min-h-screen bg-ink-950 py-12 px-6">
       <div className="mx-auto max-w-5xl">
         {/* Progress bar */}
         <div className="mb-10 flex items-center gap-4">
-          <span className="font-mono text-xs text-paper-faint">{currentStepMeta.label} / 06</span>
+          <span className="font-mono text-xs text-paper-faint">{stepNumLabel} / {totalLabel}</span>
           <div className="flex-1 h-px bg-ink-700">
             <motion.div
               className="h-px bg-ember"
-              animate={{ width: `${((step - 1) / 5) * 100}%` }}
+              animate={{ width: `${progressPct}%` }}
               transition={{ duration: 0.4 }}
             />
           </div>
@@ -180,73 +236,33 @@ export function Setup() {
           <div>
             <AnimatePresence mode="wait">
               <motion.div
-                key={step}
+                key={`${step}-${state.interviewType}`}
                 variants={slideVariants}
                 initial="enter"
                 animate="center"
                 exit="exit"
               >
-                <p className="mb-1 font-mono text-xs uppercase tracking-widest text-ember">{currentStepMeta.label}</p>
-                <h2 className="mb-2 font-display text-3xl font-semibold text-paper">{currentStepMeta.title}</h2>
-                <p className="mb-8 text-paper-dim">{currentStepMeta.subtitle}</p>
+                <p className="mb-1 font-mono text-xs uppercase tracking-widest text-ember">{stepNumLabel}</p>
+                <h2 className="mb-2 font-display text-3xl font-semibold text-paper">{title}</h2>
+                <p className="mb-8 text-paper-dim">{subtitle}</p>
 
+                {/* Step 1: Interview type */}
                 {step === 1 && (
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    {ROLES.map((r) => (
+                    {INTERVIEW_TYPES.map((t) => (
                       <OptionCard
-                        key={r.id}
-                        selected={state.role === r.id}
-                        onClick={() => setState((s) => ({ ...s, role: r.id }))}
-                        label={r.label}
-                        hint={r.hint}
+                        key={t.id}
+                        selected={state.interviewType === t.id}
+                        onClick={() => setState((s) => ({ ...s, interviewType: t.id }))}
+                        label={t.label}
+                        hint={t.hint}
                       />
                     ))}
                   </div>
                 )}
 
-                {step === 2 && (
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    {companies.map((c) => (
-                      <OptionCard
-                        key={c.id}
-                        selected={state.company === c.id}
-                        onClick={() => setState((s) => ({ ...s, company: c.id }))}
-                        label={c.name}
-                        hint={c.behavioralThemes.slice(0, 2).join(' · ')}
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {step === 3 && (
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    {MODES.map((m) => (
-                      <OptionCard
-                        key={m.id}
-                        selected={state.mode === m.id}
-                        onClick={() => setState((s) => ({ ...s, mode: m.id }))}
-                        label={m.label}
-                        hint={m.hint}
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {step === 4 && (
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    {DIFFICULTIES.map((d) => (
-                      <OptionCard
-                        key={d.id}
-                        selected={state.difficulty === d.id}
-                        onClick={() => setState((s) => ({ ...s, difficulty: d.id }))}
-                        label={d.label}
-                        hint={d.hint}
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {step === 5 && (
+                {/* Behavioral: Step 2 = Duration */}
+                {state.interviewType === 'behavioral' && step === 2 && (
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     {DURATIONS.map((d) => (
                       <OptionCard
@@ -260,13 +276,90 @@ export function Setup() {
                   </div>
                 )}
 
-                {step === 6 && (
+                {/* Behavioral: Step 3 = Persona */}
+                {state.interviewType === 'behavioral' && step === 3 && (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {behavioralPersonas.map((p) => (
+                      <OptionCard
+                        key={p.id}
+                        selected={state.behavioralPersona === p.id}
+                        onClick={() => setState((s) => ({ ...s, behavioralPersona: p.id }))}
+                        label={p.name}
+                        hint={p.description}
+                        tag={p.id}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Technical: Step 2 = Role */}
+                {state.interviewType === 'technical' && step === 2 && (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {ROLES.map((r) => (
+                      <OptionCard
+                        key={r.id}
+                        selected={state.role === r.id}
+                        onClick={() => setState((s) => ({ ...s, role: r.id }))}
+                        label={r.label}
+                        hint={r.hint}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Technical: Step 3 = Company */}
+                {state.interviewType === 'technical' && step === 3 && (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {companies.map((c) => (
+                      <OptionCard
+                        key={c.id}
+                        selected={state.company === c.id}
+                        onClick={() => setState((s) => ({ ...s, company: c.id }))}
+                        label={c.name}
+                        hint={c.behavioralThemes.slice(0, 2).join(' · ')}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Technical: Step 4 = Difficulty */}
+                {state.interviewType === 'technical' && step === 4 && (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    {DIFFICULTIES.map((d) => (
+                      <OptionCard
+                        key={d.id}
+                        selected={state.difficulty === d.id}
+                        onClick={() => setState((s) => ({ ...s, difficulty: d.id }))}
+                        label={d.label}
+                        hint={d.hint}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Technical: Step 5 = Duration */}
+                {state.interviewType === 'technical' && step === 5 && (
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {DURATIONS.map((d) => (
+                      <OptionCard
+                        key={d.mins}
+                        selected={state.durationMinutes === d.mins}
+                        onClick={() => setState((s) => ({ ...s, durationMinutes: d.mins }))}
+                        label={d.label}
+                        hint={d.hint}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Technical: Step 6 = Persona */}
+                {state.interviewType === 'technical' && step === 6 && (
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {personas.map((p) => (
                       <OptionCard
                         key={p.id}
-                        selected={state.persona === p.id}
-                        onClick={() => setState((s) => ({ ...s, persona: p.id }))}
+                        selected={state.technicalPersona === p.id}
+                        onClick={() => setState((s) => ({ ...s, technicalPersona: p.id }))}
                         label={p.name}
                         hint={p.description}
                         tag={p.id}
@@ -288,7 +381,7 @@ export function Setup() {
                 </button>
               )}
               <div className="flex-1" />
-              {step < 6 ? (
+              {!isFinalStep ? (
                 <button
                   onClick={() => canAdvance() && setStep((s) => s + 1)}
                   disabled={!canAdvance()}
@@ -323,14 +416,7 @@ export function Setup() {
             <div className="sticky top-24 rounded-md border border-ink-700/60 bg-ink-900 p-5">
               <p className="mb-4 font-mono text-[10px] uppercase tracking-widest text-paper-faint">Your session</p>
               <div className="space-y-3">
-                {[
-                  { label: 'Role', value: state.role ? ROLES.find((r) => r.id === state.role)?.label : null },
-                  { label: 'Company', value: state.company ? companies.find((c) => c.id === state.company)?.name : null },
-                  { label: 'Mode', value: state.mode ? state.mode.charAt(0).toUpperCase() + state.mode.slice(1) : null },
-                  { label: 'Difficulty', value: state.difficulty ? state.difficulty.charAt(0).toUpperCase() + state.difficulty.slice(1) : null },
-                  { label: 'Duration', value: state.durationMinutes ? `${state.durationMinutes} min` : null },
-                  { label: 'Interviewer', value: state.persona ? personas.find((p) => p.id === state.persona)?.name : null },
-                ].map(({ label, value }) => (
+                {summaryRows.map(({ label, value }) => (
                   <div key={label} className="flex items-center justify-between gap-2">
                     <span className="font-mono text-xs text-paper-faint">{label}</span>
                     <span className={cn('font-mono text-xs', value ? 'text-paper' : 'text-paper-faint/40')}>

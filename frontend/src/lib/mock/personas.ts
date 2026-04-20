@@ -1,4 +1,4 @@
-import type { InterviewerPersonaConfig } from '../types'
+import type { InterviewerPersonaConfig, BehavioralPersonaConfig } from '../types'
 
 export const personas: InterviewerPersonaConfig[] = [
   {
@@ -28,5 +28,32 @@ export const personas: InterviewerPersonaConfig[] = [
     description: 'Challenges every assumption, pushes hard on edge cases',
     traits: ['Challenging', 'Skeptical', 'Deep dive probing'],
     sampleIntro: "Interesting approach. But what if I told you that won't scale? Walk me through your assumptions.",
+  },
+]
+
+export const behavioralPersonas: BehavioralPersonaConfig[] = [
+  {
+    id: 'supportive',
+    name: 'Sam',
+    description: 'Warm, encouraging — prompts deeper storytelling and personal impact',
+    traits: ['Encouraging', 'Depth-focused', 'Reflective'],
+  },
+  {
+    id: 'corporate',
+    name: 'Dana',
+    description: 'Formal, structured — strictly enforces STAR format throughout',
+    traits: ['Structured', 'STAR-strict', 'Professional'],
+  },
+  {
+    id: 'pressure',
+    name: 'Blake',
+    description: 'Fast-paced, direct — cuts off rambling, demands conciseness',
+    traits: ['Time-boxing', 'Direct', 'Concise'],
+  },
+  {
+    id: 'probing',
+    name: 'Quinn',
+    description: 'Skeptical, detail-oriented — questions every claim and motive',
+    traits: ['Evidence-seeking', 'Skeptical', 'Deep-dive'],
   },
 ]

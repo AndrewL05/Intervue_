@@ -2,16 +2,18 @@
 
 export type SessionStatus = 'pending' | 'active' | 'completed' | 'abandoned'
 export type SessionMode = 'technical' | 'behavioral' | 'mixed'
+export type BehavioralPersona = 'supportive' | 'corporate' | 'pressure' | 'probing'
 
 export interface ApiSession {
   id: string
   clerk_user_id: string
   mode: SessionMode
-  role: string
+  role: string | null
   company: string | null
-  difficulty: 'easy' | 'medium' | 'hard'
+  difficulty: 'easy' | 'medium' | 'hard' | null
   duration_minutes: number
-  interviewer_tone: 'friendly' | 'neutral' | 'intense' | 'skeptical'
+  interviewer_tone: 'friendly' | 'neutral' | 'intense' | 'skeptical' | null
+  behavioral_persona: BehavioralPersona | null
   status: SessionStatus
   question_ids: string[]
   elevenlabs_agent_id: string | null

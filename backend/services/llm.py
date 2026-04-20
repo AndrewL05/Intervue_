@@ -28,12 +28,12 @@ def get_llm_client() -> tuple[AsyncOpenAI, str]:
     return _client, _FEATHERLESS_MODEL
 
 
-async def chat_complete(prompt: str) -> str:
+async def chat_complete(prompt: str, temperature: float = 0.3) -> str:
     client, model = get_llm_client()
     response = await client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.3,
+        temperature=temperature,
         max_tokens=1024,
     )
     return response.choices[0].message.content or ""

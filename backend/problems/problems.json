@@ -63,6 +63,93 @@
     ]
   },
   {
+    "id": "climbing-stairs",
+    "title": "Climbing Stairs",
+    "difficulty": "easy",
+    "description": "You are climbing a staircase. It takes `n` steps to reach the top.\n\nEach time you can either climb `1` or `2` steps. In how many distinct ways can you climb to the top?",
+    "examples": [
+      { "input": "n = 2", "output": "2", "explanation": "There are two ways to climb to the top: 1+1 or 2." },
+      { "input": "n = 3", "output": "3", "explanation": "There are three ways: 1+1+1, 1+2, or 2+1." }
+    ],
+    "constraints": [
+      "1 ≤ n ≤ 45"
+    ],
+    "prompt": "Given n steps to climb, find the number of distinct ways to reach the top climbing 1 or 2 steps at a time.",
+    "languages": ["python", "javascript", "java", "cpp", "go"],
+    "starter_code": {
+      "python": "import sys\n\ndef climbStairs(n):\n    # Write your solution here\n    pass\n\nif __name__ == \"__main__\":\n    n = int(sys.stdin.read().strip())\n    print(climbStairs(n))\n",
+      "javascript": "const n = parseInt(require('fs').readFileSync('/dev/stdin','utf8').trim());\n\nfunction climbStairs(n) {\n    // Write your solution here\n}\n\nconsole.log(climbStairs(n));\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static int climbStairs(int n) {\n        // Write your solution here\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        System.out.println(climbStairs(sc.nextInt()));\n    }\n}\n",
+      "cpp": "#include <bits/stdc++.h>\nusing namespace std;\n\nint climbStairs(int n) {\n    // Write your solution here\n    return 0;\n}\n\nint main() {\n    int n; cin >> n;\n    cout << climbStairs(n) << endl;\n    return 0;\n}\n",
+      "go": "package main\n\nimport (\n    \"bufio\"\n    \"fmt\"\n    \"os\"\n)\n\nfunc climbStairs(n int) int {\n    // Write your solution here\n    return 0\n}\n\nfunc main() {\n    reader := bufio.NewReader(os.Stdin)\n    var n int\n    fmt.Fscan(reader, &n)\n    fmt.Println(climbStairs(n))\n}\n"
+    },
+    "test_cases": [
+      { "id": "tc1", "stdin": "2", "expected_stdout": "2", "is_hidden": false },
+      { "id": "tc2", "stdin": "3", "expected_stdout": "3", "is_hidden": false },
+      { "id": "tc3", "stdin": "4", "expected_stdout": "5", "is_hidden": true },
+      { "id": "tc4", "stdin": "10", "expected_stdout": "89", "is_hidden": true }
+    ]
+  },
+  {
+    "id": "best-time-to-buy-and-sell-stock",
+    "title": "Best Time to Buy and Sell Stock",
+    "difficulty": "easy",
+    "description": "You are given an array `prices` where `prices[i]` is the price of a given stock on the `i`th day.\n\nYou want to maximize your profit by choosing a **single day** to buy one stock and choosing a **different day in the future** to sell that stock.\n\nReturn the maximum profit you can achieve from this transaction. If you cannot achieve any profit, return `0`.",
+    "examples": [
+      { "input": "prices = [7,1,5,3,6,4]", "output": "5", "explanation": "Buy on day 2 (price=1) and sell on day 5 (price=6), profit = 6-1 = 5." },
+      { "input": "prices = [7,6,4,3,1]", "output": "0", "explanation": "No profitable transaction is possible, so return 0." }
+    ],
+    "constraints": [
+      "1 ≤ prices.length ≤ 10⁵",
+      "0 ≤ prices[i] ≤ 10⁴"
+    ],
+    "prompt": "Given an array of stock prices by day, find the maximum profit from a single buy-then-sell transaction.",
+    "languages": ["python", "javascript", "java", "cpp", "go"],
+    "starter_code": {
+      "python": "import json, sys\n\ndef maxProfit(prices):\n    # Write your solution here\n    pass\n\nif __name__ == \"__main__\":\n    prices = json.loads(sys.stdin.read().strip())\n    print(maxProfit(prices))\n",
+      "javascript": "const prices = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8').trim());\n\nfunction maxProfit(prices) {\n    // Write your solution here\n}\n\nconsole.log(maxProfit(prices));\n",
+      "java": "import java.util.*;\nimport java.io.*;\n\npublic class Main {\n    public static int maxProfit(int[] prices) {\n        // Write your solution here\n        return 0;\n    }\n\n    public static void main(String[] args) throws Exception {\n        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));\n        String[] parts = br.readLine().replaceAll(\"[\\\\[\\\\]]\", \"\").split(\",\");\n        int[] prices = Arrays.stream(parts).mapToInt(s -> Integer.parseInt(s.trim())).toArray();\n        System.out.println(maxProfit(prices));\n    }\n}\n",
+      "cpp": "#include <bits/stdc++.h>\nusing namespace std;\n\nint maxProfit(vector<int>& prices) {\n    // Write your solution here\n    return 0;\n}\n\nint main() {\n    string line; getline(cin, line);\n    line.erase(remove(line.begin(), line.end(), '['), line.end());\n    line.erase(remove(line.begin(), line.end(), ']'), line.end());\n    stringstream ss(line); string tok;\n    vector<int> prices;\n    while (getline(ss, tok, ',')) prices.push_back(stoi(tok));\n    cout << maxProfit(prices) << endl;\n    return 0;\n}\n",
+      "go": "package main\n\nimport (\n    \"encoding/json\"\n    \"fmt\"\n    \"os\"\n)\n\nfunc maxProfit(prices []int) int {\n    // Write your solution here\n    return 0\n}\n\nfunc main() {\n    var prices []int\n    input, _ := os.ReadFile(\"/dev/stdin\")\n    json.Unmarshal(input, &prices)\n    fmt.Println(maxProfit(prices))\n}\n"
+    },
+    "test_cases": [
+      { "id": "tc1", "stdin": "[7,1,5,3,6,4]", "expected_stdout": "5", "is_hidden": false },
+      { "id": "tc2", "stdin": "[7,6,4,3,1]", "expected_stdout": "0", "is_hidden": false },
+      { "id": "tc3", "stdin": "[1,2]", "expected_stdout": "1", "is_hidden": true },
+      { "id": "tc4", "stdin": "[2,4,1,7]", "expected_stdout": "6", "is_hidden": true }
+    ]
+  },
+  {
+    "id": "contains-duplicate",
+    "title": "Contains Duplicate",
+    "difficulty": "easy",
+    "description": "Given an integer array `nums`, return `true` if any value appears **at least twice** in the array, and return `false` if every element is distinct.",
+    "examples": [
+      { "input": "nums = [1,2,3,1]", "output": "true" },
+      { "input": "nums = [1,2,3,4]", "output": "false" },
+      { "input": "nums = [1,1,1,3,3,4,3,2,4,2]", "output": "true" }
+    ],
+    "constraints": [
+      "1 ≤ nums.length ≤ 10⁵",
+      "-10⁹ ≤ nums[i] ≤ 10⁹"
+    ],
+    "prompt": "Given an array of integers, return true if any value appears at least twice.",
+    "languages": ["python", "javascript", "java", "cpp", "go"],
+    "starter_code": {
+      "python": "import json, sys\n\ndef containsDuplicate(nums):\n    # Write your solution here\n    pass\n\nif __name__ == \"__main__\":\n    nums = json.loads(sys.stdin.read().strip())\n    print(str(containsDuplicate(nums)).lower())\n",
+      "javascript": "const nums = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8').trim());\n\nfunction containsDuplicate(nums) {\n    // Write your solution here\n}\n\nconsole.log(String(containsDuplicate(nums)).toLowerCase());\n",
+      "java": "import java.util.*;\nimport java.io.*;\n\npublic class Main {\n    public static boolean containsDuplicate(int[] nums) {\n        // Write your solution here\n        return false;\n    }\n\n    public static void main(String[] args) throws Exception {\n        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));\n        String[] parts = br.readLine().replaceAll(\"[\\\\[\\\\]]\", \"\").split(\",\");\n        int[] nums = Arrays.stream(parts).mapToInt(s -> Integer.parseInt(s.trim())).toArray();\n        System.out.println(containsDuplicate(nums));\n    }\n}\n",
+      "cpp": "#include <bits/stdc++.h>\nusing namespace std;\n\nbool containsDuplicate(vector<int>& nums) {\n    // Write your solution here\n    return false;\n}\n\nint main() {\n    string line; getline(cin, line);\n    line.erase(remove(line.begin(), line.end(), '['), line.end());\n    line.erase(remove(line.begin(), line.end(), ']'), line.end());\n    stringstream ss(line); string tok;\n    vector<int> nums;\n    while (getline(ss, tok, ',')) nums.push_back(stoi(tok));\n    cout << (containsDuplicate(nums) ? \"true\" : \"false\") << endl;\n    return 0;\n}\n",
+      "go": "package main\n\nimport (\n    \"encoding/json\"\n    \"fmt\"\n    \"os\"\n)\n\nfunc containsDuplicate(nums []int) bool {\n    // Write your solution here\n    return false\n}\n\nfunc main() {\n    var nums []int\n    input, _ := os.ReadFile(\"/dev/stdin\")\n    json.Unmarshal(input, &nums)\n    if containsDuplicate(nums) {\n        fmt.Println(\"true\")\n    } else {\n        fmt.Println(\"false\")\n    }\n}\n"
+    },
+    "test_cases": [
+      { "id": "tc1", "stdin": "[1,2,3,1]", "expected_stdout": "true", "is_hidden": false },
+      { "id": "tc2", "stdin": "[1,2,3,4]", "expected_stdout": "false", "is_hidden": false },
+      { "id": "tc3", "stdin": "[1,1,1,3,3,4,3,2,4,2]", "expected_stdout": "true", "is_hidden": true },
+      { "id": "tc4", "stdin": "[0]", "expected_stdout": "false", "is_hidden": true }
+    ]
+  },
+  {
     "id": "maximum-subarray",
     "title": "Maximum Subarray",
     "difficulty": "medium",
@@ -90,6 +177,190 @@
       { "id": "tc2", "stdin": "[1]", "expected_stdout": "1", "is_hidden": false },
       { "id": "tc3", "stdin": "[5,4,-1,7,8]", "expected_stdout": "23", "is_hidden": true },
       { "id": "tc4", "stdin": "[-1,-2,-3]", "expected_stdout": "-1", "is_hidden": true }
+    ]
+  },
+  {
+    "id": "longest-substring-without-repeating-characters",
+    "title": "Longest Substring Without Repeating Characters",
+    "difficulty": "medium",
+    "description": "Given a string `s`, find the length of the **longest substring** without repeating characters.",
+    "examples": [
+      { "input": "s = \"abcabcbb\"", "output": "3", "explanation": "The answer is \"abc\", with the length of 3." },
+      { "input": "s = \"bbbbb\"", "output": "1", "explanation": "The answer is \"b\", with the length of 1." },
+      { "input": "s = \"pwwkew\"", "output": "3", "explanation": "The answer is \"wke\", with the length of 3." }
+    ],
+    "constraints": [
+      "0 ≤ s.length ≤ 5 × 10⁴",
+      "s consists of English letters, digits, symbols and spaces."
+    ],
+    "prompt": "Given a string, find the length of the longest substring without repeating characters.",
+    "languages": ["python", "javascript", "java", "cpp", "go"],
+    "starter_code": {
+      "python": "import sys\n\ndef lengthOfLongestSubstring(s):\n    # Write your solution here\n    pass\n\nif __name__ == \"__main__\":\n    s = sys.stdin.read().strip()\n    print(lengthOfLongestSubstring(s))\n",
+      "javascript": "const s = require('fs').readFileSync('/dev/stdin','utf8').trim();\n\nfunction lengthOfLongestSubstring(s) {\n    // Write your solution here\n}\n\nconsole.log(lengthOfLongestSubstring(s));\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static int lengthOfLongestSubstring(String s) {\n        // Write your solution here\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        System.out.println(lengthOfLongestSubstring(sc.nextLine().trim()));\n    }\n}\n",
+      "cpp": "#include <bits/stdc++.h>\nusing namespace std;\n\nint lengthOfLongestSubstring(string s) {\n    // Write your solution here\n    return 0;\n}\n\nint main() {\n    string s; getline(cin, s);\n    cout << lengthOfLongestSubstring(s) << endl;\n    return 0;\n}\n",
+      "go": "package main\n\nimport (\n    \"bufio\"\n    \"fmt\"\n    \"os\"\n    \"strings\"\n)\n\nfunc lengthOfLongestSubstring(s string) int {\n    // Write your solution here\n    return 0\n}\n\nfunc main() {\n    reader := bufio.NewReader(os.Stdin)\n    s, _ := reader.ReadString('\\n')\n    s = strings.TrimSpace(s)\n    fmt.Println(lengthOfLongestSubstring(s))\n}\n"
+    },
+    "test_cases": [
+      { "id": "tc1", "stdin": "abcabcbb", "expected_stdout": "3", "is_hidden": false },
+      { "id": "tc2", "stdin": "bbbbb", "expected_stdout": "1", "is_hidden": false },
+      { "id": "tc3", "stdin": "pwwkew", "expected_stdout": "3", "is_hidden": true },
+      { "id": "tc4", "stdin": "dvdf", "expected_stdout": "3", "is_hidden": true }
+    ]
+  },
+  {
+    "id": "product-of-array-except-self",
+    "title": "Product of Array Except Self",
+    "difficulty": "medium",
+    "description": "Given an integer array `nums`, return an array `answer` such that `answer[i]` is equal to the product of all the elements of `nums` except `nums[i]`.\n\nThe product of any prefix or suffix of `nums` is **guaranteed** to fit in a **32-bit** integer.\n\nYou must write an algorithm that runs in `O(n)` time and without using the division operation.",
+    "examples": [
+      { "input": "nums = [1,2,3,4]", "output": "[24,12,8,6]" },
+      { "input": "nums = [-1,1,0,-3,3]", "output": "[0,0,9,0,0]" }
+    ],
+    "constraints": [
+      "2 ≤ nums.length ≤ 10⁵",
+      "-30 ≤ nums[i] ≤ 30",
+      "The product of any prefix or suffix of nums is guaranteed to fit in a 32-bit integer."
+    ],
+    "prompt": "Given an array, return an array where each element is the product of all other elements, without using division.",
+    "languages": ["python", "javascript", "java", "cpp", "go"],
+    "starter_code": {
+      "python": "import json, sys\n\ndef productExceptSelf(nums):\n    # Write your solution here\n    pass\n\nif __name__ == \"__main__\":\n    nums = json.loads(sys.stdin.read().strip())\n    print(json.dumps(productExceptSelf(nums), separators=(',', ':')))\n",
+      "javascript": "const nums = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8').trim());\n\nfunction productExceptSelf(nums) {\n    // Write your solution here\n}\n\nconsole.log(JSON.stringify(productExceptSelf(nums)));\n",
+      "java": "import java.util.*;\nimport java.io.*;\n\npublic class Main {\n    public static int[] productExceptSelf(int[] nums) {\n        // Write your solution here\n        return new int[]{};\n    }\n\n    public static void main(String[] args) throws Exception {\n        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));\n        String[] parts = br.readLine().replaceAll(\"[\\\\[\\\\]]\", \"\").split(\",\");\n        int[] nums = Arrays.stream(parts).mapToInt(s -> Integer.parseInt(s.trim())).toArray();\n        int[] res = productExceptSelf(nums);\n        StringBuilder sb = new StringBuilder(\"[\");\n        for (int i = 0; i < res.length; i++) {\n            if (i > 0) sb.append(\",\");\n            sb.append(res[i]);\n        }\n        sb.append(\"]\");\n        System.out.println(sb.toString());\n    }\n}\n",
+      "cpp": "#include <bits/stdc++.h>\nusing namespace std;\n\nvector<int> productExceptSelf(vector<int>& nums) {\n    // Write your solution here\n    return {};\n}\n\nint main() {\n    string line; getline(cin, line);\n    line.erase(remove(line.begin(), line.end(), '['), line.end());\n    line.erase(remove(line.begin(), line.end(), ']'), line.end());\n    stringstream ss(line); string tok;\n    vector<int> nums;\n    while (getline(ss, tok, ',')) nums.push_back(stoi(tok));\n    auto res = productExceptSelf(nums);\n    cout << \"[\";\n    for (int i = 0; i < (int)res.size(); i++) {\n        if (i > 0) cout << \",\";\n        cout << res[i];\n    }\n    cout << \"]\" << endl;\n    return 0;\n}\n",
+      "go": "package main\n\nimport (\n    \"encoding/json\"\n    \"fmt\"\n    \"os\"\n)\n\nfunc productExceptSelf(nums []int) []int {\n    // Write your solution here\n    return nil\n}\n\nfunc main() {\n    var nums []int\n    input, _ := os.ReadFile(\"/dev/stdin\")\n    json.Unmarshal(input, &nums)\n    result := productExceptSelf(nums)\n    out, _ := json.Marshal(result)\n    fmt.Println(string(out))\n}\n"
+    },
+    "test_cases": [
+      { "id": "tc1", "stdin": "[1,2,3,4]", "expected_stdout": "[24,12,8,6]", "is_hidden": false },
+      { "id": "tc2", "stdin": "[1,2]", "expected_stdout": "[2,1]", "is_hidden": false },
+      { "id": "tc3", "stdin": "[2,3,4]", "expected_stdout": "[12,8,6]", "is_hidden": true },
+      { "id": "tc4", "stdin": "[-1,1,0,-3,3]", "expected_stdout": "[0,0,9,0,0]", "is_hidden": true }
+    ]
+  },
+  {
+    "id": "coin-change",
+    "title": "Coin Change",
+    "difficulty": "medium",
+    "description": "You are given an integer array `coins` representing coins of different denominations and an integer `amount` representing a total amount of money.\n\nReturn the fewest number of coins that you need to make up that amount. If that amount of money cannot be made up by any combination of the coins, return `-1`.\n\nYou may assume that you have an infinite number of each kind of coin.",
+    "examples": [
+      { "input": "coins = [1,2,5], amount = 11", "output": "3", "explanation": "11 = 5 + 5 + 1" },
+      { "input": "coins = [2], amount = 3", "output": "-1" },
+      { "input": "coins = [1], amount = 0", "output": "0" }
+    ],
+    "constraints": [
+      "1 ≤ coins.length ≤ 12",
+      "1 ≤ coins[i] ≤ 2³¹ - 1",
+      "0 ≤ amount ≤ 10⁴"
+    ],
+    "prompt": "Given coin denominations and a target amount, find the minimum number of coins needed to make the amount.",
+    "languages": ["python", "javascript", "java", "cpp", "go"],
+    "starter_code": {
+      "python": "import json, sys\n\ndef coinChange(coins, amount):\n    # Write your solution here\n    pass\n\nif __name__ == \"__main__\":\n    lines = sys.stdin.read().strip().split('\\n')\n    coins = json.loads(lines[0])\n    amount = int(lines[1])\n    print(coinChange(coins, amount))\n",
+      "javascript": "const lines = require('fs').readFileSync('/dev/stdin','utf8').trim().split('\\n');\nconst coins = JSON.parse(lines[0]);\nconst amount = parseInt(lines[1]);\n\nfunction coinChange(coins, amount) {\n    // Write your solution here\n}\n\nconsole.log(coinChange(coins, amount));\n",
+      "java": "import java.util.*;\nimport java.io.*;\n\npublic class Main {\n    public static int coinChange(int[] coins, int amount) {\n        // Write your solution here\n        return 0;\n    }\n\n    public static void main(String[] args) throws Exception {\n        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));\n        String[] parts = br.readLine().replaceAll(\"[\\\\[\\\\]]\", \"\").split(\",\");\n        int amount = Integer.parseInt(br.readLine().trim());\n        int[] coins = Arrays.stream(parts).mapToInt(s -> Integer.parseInt(s.trim())).toArray();\n        System.out.println(coinChange(coins, amount));\n    }\n}\n",
+      "cpp": "#include <bits/stdc++.h>\nusing namespace std;\n\nint coinChange(vector<int>& coins, int amount) {\n    // Write your solution here\n    return 0;\n}\n\nint main() {\n    string line; getline(cin, line);\n    line.erase(remove(line.begin(), line.end(), '['), line.end());\n    line.erase(remove(line.begin(), line.end(), ']'), line.end());\n    stringstream ss(line); string tok;\n    vector<int> coins;\n    while (getline(ss, tok, ',')) coins.push_back(stoi(tok));\n    int amount; cin >> amount;\n    cout << coinChange(coins, amount) << endl;\n    return 0;\n}\n",
+      "go": "package main\n\nimport (\n    \"bufio\"\n    \"encoding/json\"\n    \"fmt\"\n    \"os\"\n    \"strings\"\n)\n\nfunc coinChange(coins []int, amount int) int {\n    // Write your solution here\n    return 0\n}\n\nfunc main() {\n    reader := bufio.NewReader(os.Stdin)\n    line, _ := reader.ReadString('\\n')\n    line = strings.TrimSpace(line)\n    var coins []int\n    json.Unmarshal([]byte(line), &coins)\n    var amount int\n    fmt.Fscan(reader, &amount)\n    fmt.Println(coinChange(coins, amount))\n}\n"
+    },
+    "test_cases": [
+      { "id": "tc1", "stdin": "[1,2,5]\n11", "expected_stdout": "3", "is_hidden": false },
+      { "id": "tc2", "stdin": "[2]\n3", "expected_stdout": "-1", "is_hidden": false },
+      { "id": "tc3", "stdin": "[1,5,11,25]\n11", "expected_stdout": "1", "is_hidden": true },
+      { "id": "tc4", "stdin": "[1,2,5]\n100", "expected_stdout": "20", "is_hidden": true }
+    ]
+  },
+  {
+    "id": "find-minimum-in-rotated-sorted-array",
+    "title": "Find Minimum in Rotated Sorted Array",
+    "difficulty": "medium",
+    "description": "Suppose an array of length `n` sorted in ascending order is **rotated** between `1` and `n` times.\n\nGiven the sorted rotated array `nums` of **unique** elements, return the minimum element of this array.\n\nYou must write an algorithm that runs in `O(log n)` time.",
+    "examples": [
+      { "input": "nums = [3,4,5,1,2]", "output": "1", "explanation": "The original array was [1,2,3,4,5] and it was rotated 3 times." },
+      { "input": "nums = [4,5,6,7,0,1,2]", "output": "0", "explanation": "The original array was [0,1,2,4,5,6,7] and it was rotated 4 times." },
+      { "input": "nums = [11,13,15,17]", "output": "11", "explanation": "The original array was [11,13,15,17] and it was rotated 4 times (no effective rotation)." }
+    ],
+    "constraints": [
+      "n == nums.length",
+      "1 ≤ n ≤ 5000",
+      "-5000 ≤ nums[i] ≤ 5000",
+      "All the integers of nums are unique.",
+      "nums is sorted and rotated between 1 and n times."
+    ],
+    "prompt": "Given a rotated sorted array of unique elements, find and return the minimum element in O(log n) time.",
+    "languages": ["python", "javascript", "java", "cpp", "go"],
+    "starter_code": {
+      "python": "import json, sys\n\ndef findMin(nums):\n    # Write your solution here\n    pass\n\nif __name__ == \"__main__\":\n    nums = json.loads(sys.stdin.read().strip())\n    print(findMin(nums))\n",
+      "javascript": "const nums = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8').trim());\n\nfunction findMin(nums) {\n    // Write your solution here\n}\n\nconsole.log(findMin(nums));\n",
+      "java": "import java.util.*;\nimport java.io.*;\n\npublic class Main {\n    public static int findMin(int[] nums) {\n        // Write your solution here\n        return 0;\n    }\n\n    public static void main(String[] args) throws Exception {\n        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));\n        String[] parts = br.readLine().replaceAll(\"[\\\\[\\\\]]\", \"\").split(\",\");\n        int[] nums = Arrays.stream(parts).mapToInt(s -> Integer.parseInt(s.trim())).toArray();\n        System.out.println(findMin(nums));\n    }\n}\n",
+      "cpp": "#include <bits/stdc++.h>\nusing namespace std;\n\nint findMin(vector<int>& nums) {\n    // Write your solution here\n    return 0;\n}\n\nint main() {\n    string line; getline(cin, line);\n    line.erase(remove(line.begin(), line.end(), '['), line.end());\n    line.erase(remove(line.begin(), line.end(), ']'), line.end());\n    stringstream ss(line); string tok;\n    vector<int> nums;\n    while (getline(ss, tok, ',')) nums.push_back(stoi(tok));\n    cout << findMin(nums) << endl;\n    return 0;\n}\n",
+      "go": "package main\n\nimport (\n    \"encoding/json\"\n    \"fmt\"\n    \"os\"\n)\n\nfunc findMin(nums []int) int {\n    // Write your solution here\n    return 0\n}\n\nfunc main() {\n    var nums []int\n    input, _ := os.ReadFile(\"/dev/stdin\")\n    json.Unmarshal(input, &nums)\n    fmt.Println(findMin(nums))\n}\n"
+    },
+    "test_cases": [
+      { "id": "tc1", "stdin": "[3,4,5,1,2]", "expected_stdout": "1", "is_hidden": false },
+      { "id": "tc2", "stdin": "[4,5,6,7,0,1,2]", "expected_stdout": "0", "is_hidden": false },
+      { "id": "tc3", "stdin": "[11,13,15,17]", "expected_stdout": "11", "is_hidden": true },
+      { "id": "tc4", "stdin": "[2,1]", "expected_stdout": "1", "is_hidden": true }
+    ]
+  },
+  {
+    "id": "trapping-rain-water",
+    "title": "Trapping Rain Water",
+    "difficulty": "hard",
+    "description": "Given `n` non-negative integers representing an elevation map where the width of each bar is `1`, compute how much water it can trap after raining.",
+    "examples": [
+      { "input": "height = [0,1,0,2,1,0,1,3,2,1,2,1]", "output": "6", "explanation": "The elevation map is represented by the array. In this case, 6 units of rain water are trapped." },
+      { "input": "height = [4,2,0,3,2,5]", "output": "9" }
+    ],
+    "constraints": [
+      "n == height.length",
+      "1 ≤ n ≤ 2 × 10⁴",
+      "0 ≤ height[i] ≤ 10⁵"
+    ],
+    "prompt": "Given an elevation map as an array of heights, compute the total units of rainwater that can be trapped.",
+    "languages": ["python", "javascript", "java", "cpp", "go"],
+    "starter_code": {
+      "python": "import json, sys\n\ndef trap(height):\n    # Write your solution here\n    pass\n\nif __name__ == \"__main__\":\n    height = json.loads(sys.stdin.read().strip())\n    print(trap(height))\n",
+      "javascript": "const height = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8').trim());\n\nfunction trap(height) {\n    // Write your solution here\n}\n\nconsole.log(trap(height));\n",
+      "java": "import java.util.*;\nimport java.io.*;\n\npublic class Main {\n    public static int trap(int[] height) {\n        // Write your solution here\n        return 0;\n    }\n\n    public static void main(String[] args) throws Exception {\n        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));\n        String[] parts = br.readLine().replaceAll(\"[\\\\[\\\\]]\", \"\").split(\",\");\n        int[] height = Arrays.stream(parts).mapToInt(s -> Integer.parseInt(s.trim())).toArray();\n        System.out.println(trap(height));\n    }\n}\n",
+      "cpp": "#include <bits/stdc++.h>\nusing namespace std;\n\nint trap(vector<int>& height) {\n    // Write your solution here\n    return 0;\n}\n\nint main() {\n    string line; getline(cin, line);\n    line.erase(remove(line.begin(), line.end(), '['), line.end());\n    line.erase(remove(line.begin(), line.end(), ']'), line.end());\n    stringstream ss(line); string tok;\n    vector<int> height;\n    while (getline(ss, tok, ',')) height.push_back(stoi(tok));\n    cout << trap(height) << endl;\n    return 0;\n}\n",
+      "go": "package main\n\nimport (\n    \"encoding/json\"\n    \"fmt\"\n    \"os\"\n)\n\nfunc trap(height []int) int {\n    // Write your solution here\n    return 0\n}\n\nfunc main() {\n    var height []int\n    input, _ := os.ReadFile(\"/dev/stdin\")\n    json.Unmarshal(input, &height)\n    fmt.Println(trap(height))\n}\n"
+    },
+    "test_cases": [
+      { "id": "tc1", "stdin": "[0,1,0,2,1,0,1,3,2,1,2,1]", "expected_stdout": "6", "is_hidden": false },
+      { "id": "tc2", "stdin": "[4,2,0,3,2,5]", "expected_stdout": "9", "is_hidden": false },
+      { "id": "tc3", "stdin": "[3,0,2,0,4]", "expected_stdout": "7", "is_hidden": true },
+      { "id": "tc4", "stdin": "[1,0,1]", "expected_stdout": "1", "is_hidden": true }
+    ]
+  },
+  {
+    "id": "longest-valid-parentheses",
+    "title": "Longest Valid Parentheses",
+    "difficulty": "hard",
+    "description": "Given a string containing just the characters `'('` and `')'`, return the length of the longest valid (well-formed) parentheses substring.",
+    "examples": [
+      { "input": "s = \"(()\"", "output": "2", "explanation": "The longest valid parentheses substring is \"()\"." },
+      { "input": "s = \")()())\"", "output": "4", "explanation": "The longest valid parentheses substring is \"()()\"." },
+      { "input": "s = \"\"", "output": "0" }
+    ],
+    "constraints": [
+      "0 ≤ s.length ≤ 3 × 10⁴",
+      "s[i] is '(' or ')'."
+    ],
+    "prompt": "Given a string of parentheses, find the length of the longest valid (well-formed) parentheses substring.",
+    "languages": ["python", "javascript", "java", "cpp", "go"],
+    "starter_code": {
+      "python": "import sys\n\ndef longestValidParentheses(s):\n    # Write your solution here\n    pass\n\nif __name__ == \"__main__\":\n    s = sys.stdin.read().strip()\n    print(longestValidParentheses(s))\n",
+      "javascript": "const s = require('fs').readFileSync('/dev/stdin','utf8').trim();\n\nfunction longestValidParentheses(s) {\n    // Write your solution here\n}\n\nconsole.log(longestValidParentheses(s));\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static int longestValidParentheses(String s) {\n        // Write your solution here\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String line = sc.hasNextLine() ? sc.nextLine().trim() : \"\";\n        System.out.println(longestValidParentheses(line));\n    }\n}\n",
+      "cpp": "#include <bits/stdc++.h>\nusing namespace std;\n\nint longestValidParentheses(string s) {\n    // Write your solution here\n    return 0;\n}\n\nint main() {\n    string s; getline(cin, s);\n    cout << longestValidParentheses(s) << endl;\n    return 0;\n}\n",
+      "go": "package main\n\nimport (\n    \"bufio\"\n    \"fmt\"\n    \"os\"\n    \"strings\"\n)\n\nfunc longestValidParentheses(s string) int {\n    // Write your solution here\n    return 0\n}\n\nfunc main() {\n    reader := bufio.NewReader(os.Stdin)\n    s, _ := reader.ReadString('\\n')\n    s = strings.TrimSpace(s)\n    fmt.Println(longestValidParentheses(s))\n}\n"
+    },
+    "test_cases": [
+      { "id": "tc1", "stdin": "(()", "expected_stdout": "2", "is_hidden": false },
+      { "id": "tc2", "stdin": ")()())", "expected_stdout": "4", "is_hidden": false },
+      { "id": "tc3", "stdin": "()()", "expected_stdout": "4", "is_hidden": true },
+      { "id": "tc4", "stdin": "(()()", "expected_stdout": "4", "is_hidden": true }
     ]
   }
 ]

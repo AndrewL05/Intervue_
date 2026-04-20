@@ -44,6 +44,55 @@ _TONE_PERSONA = {
 }
 
 
+_BEHAVIORAL_PERSONA = {
+    "supportive": (
+        "You are a warm, encouraging interviewer. Create a safe space for storytelling. "
+        "Prompt the candidate to go deeper on impact, emotions, and personal growth. "
+        "Celebrate specifics and gently guide vague answers toward concrete examples."
+    ),
+    "corporate": (
+        "You are a formal, professional interviewer. Strictly enforce the STAR format — "
+        "Situation, Task, Action, Result. If any component is missing, ask directly for it. "
+        "Keep a measured, neutral tone throughout."
+    ),
+    "pressure": (
+        "You are a fast-paced, no-nonsense interviewer. Cut off rambling answers politely "
+        "but firmly. Demand conciseness — if an answer exceeds 90 seconds, interrupt and "
+        "ask the candidate to summarize in 30 seconds. Push for bottom-line impact."
+    ),
+    "probing": (
+        "You are a deeply skeptical, detail-oriented interviewer. Question every claim. "
+        "Ask for evidence, numbers, and specifics behind every statement. Probe motives: "
+        "why did you make that decision? What would you do differently? Don't accept "
+        "surface-level answers."
+    ),
+}
+
+
+def _build_behavioral_system_prompt(session, questions: list) -> str:
+    persona_key = session.behavioral_persona.value if session.behavioral_persona else "supportive"
+    persona = _BEHAVIORAL_PERSONA.get(persona_key, _BEHAVIORAL_PERSONA["supportive"])
+    duration = session.duration_minutes
+
+    question_list = "\n".join(
+        f"{i + 1}. {q.prompt}" for i, q in enumerate(questions)
+    )
+
+    return f"""{persona}
+
+You are conducting a behavioral mock interview. The session lasts approximately {duration} minutes.
+
+Interview plan — ask these questions in order, then follow up naturally based on the candidate's responses:
+{question_list}
+
+Conduct guidelines:
+- Open with a brief professional greeting and one sentence describing the format.
+- Ask one question at a time. Wait for a complete response before moving on.
+- If an answer is missing the Situation, Task, Action, or Result component — ask specifically for the missing piece.
+- If an answer is vague or lacks a concrete example, ask a targeted follow-up (e.g., "Can you walk me through a specific moment?" or "What was the measurable outcome?").
+- Do not skip questions unless time is clearly running out.
+- Close the interview professionally once all questions are covered or time is nearly up.
+- Stay in character throughout. Do not break the fourth wall or mention that you are an AI."""
 
 
 def _build_system_prompt(session, questions: list) -> str:
@@ -161,6 +210,50 @@ async def create_interview_agent(session, questions: list) -> str:
         return resp.json()["agent_id"]
 
 
+async def create_behavioral_agent(session, questions: list) -> str:
+    """Create a per-session ElevenLabs agent for behavioral interviews. Returns agent_id."""
+    first_message = (
+        f"Hello! Thank you for joining today. I'll be conducting your behavioral interview — "
+        f"we have about {session.duration_minutes} minutes. "
+        f"I'll ask you several questions about past experiences. Please use specific examples. "
+        f"Let's get started — could you briefly tell me about yourself and your background?"
+    )
+
+    payload = {
+        "name": f"BehavioralInterviewer-{session.id}",
+        "conversation_config": {
+            "agent": {
+                "prompt": {
+                    "prompt": _build_behavioral_system_prompt(session, questions),
+                    "llm": "gemini-2.0-flash-001",
+                    "temperature": 0.6,
+                },
+                "first_message": first_message,
+                "language": "en",
+            },
+            "tts": {
+                "model_id": "eleven_turbo_v2",
+                "optimize_streaming_latency": 3,
+                "stability": 0.5,
+                "similarity_boost": 0.8,
+            },
+            "asr": {"quality": "high"},
+            "turn": {"turn_timeout": 8},
+        },
+        "platform_settings": {
+            "max_duration_seconds": session.duration_minutes * 60 + 60,
+        },
+    }
+
+    async with httpx.AsyncClient(timeout=20) as client:
+        resp = await client.post(
+            f"{ELEVENLABS_BASE}/convai/agents/create",
+            headers={"xi-api-key": settings.elevenlabs_api_key},
+            json=payload,
+        )
+        if not resp.is_success:
+            raise RuntimeError(f"ElevenLabs behavioral agent creation failed {resp.status_code}: {resp.text}")
+        return resp.json()["agent_id"]
 
 
 async def get_signed_url(agent_id: str) -> str:

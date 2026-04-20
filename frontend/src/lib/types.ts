@@ -1,5 +1,6 @@
 export type InterviewMode = 'technical' | 'behavioral' | 'mixed'
 export type Difficulty = 'easy' | 'medium' | 'hard'
+export type BehavioralPersona = 'supportive' | 'corporate' | 'pressure' | 'probing'
 export type InterviewerPersona = 'friendly' | 'neutral' | 'intense' | 'skeptical'
 export type SpeakerRole = 'interviewer' | 'user'
 export type Language = 'python' | 'javascript' | 'java' | 'cpp' | 'go'
@@ -47,6 +48,13 @@ export interface InterviewerPersonaConfig {
   description: string
   traits: string[]
   sampleIntro: string
+}
+
+export interface BehavioralPersonaConfig {
+  id: BehavioralPersona
+  name: string
+  description: string
+  traits: string[]
 }
 
 export interface Company {

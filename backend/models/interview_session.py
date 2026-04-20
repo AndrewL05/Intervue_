@@ -23,6 +23,13 @@ class InterviewerTone(str, Enum):
     skeptical = "skeptical"
 
 
+class BehavioralPersona(str, Enum):
+    supportive = "supportive"
+    corporate = "corporate"
+    pressure = "pressure"
+    probing = "probing"
+
+
 class SessionStatus(str, Enum):
     pending = "pending"
     active = "active"
@@ -33,11 +40,12 @@ class SessionStatus(str, Enum):
 class InterviewSession(MongoBase):
     clerk_user_id: str
     mode: InterviewMode
-    role: str
+    role: str | None = None
     company: str | None = None
-    difficulty: Difficulty = Difficulty.medium
+    difficulty: Difficulty | None = None
     duration_minutes: int = 30
-    interviewer_tone: InterviewerTone = InterviewerTone.neutral
+    interviewer_tone: InterviewerTone | None = None
+    behavioral_persona: BehavioralPersona | None = None
     status: SessionStatus = SessionStatus.pending
     company_snapshot_id: str | None = None
     question_ids: list[str] = Field(default_factory=list)
