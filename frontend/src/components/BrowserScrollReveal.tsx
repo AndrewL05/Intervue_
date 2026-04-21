@@ -1,35 +1,78 @@
 import { useRef } from 'react'
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion'
 
-function EditorPanel() {
-  const lines = [
-    { color: 'bg-purple-400/35', w: '85%' },
-    { color: 'bg-paper/18', w: '70%' },
-    { color: 'bg-ember/28', w: '60%' },
-    { color: 'bg-ink-600/50', w: '38%' },
-    { color: 'bg-moss/28', w: '82%' },
-    { color: 'bg-paper/18', w: '55%' },
-    { color: 'bg-ember/22', w: '74%' },
-    { color: 'bg-ink-600/50', w: '88%' },
-    { color: 'bg-moss/20', w: '50%' },
-    { color: 'bg-paper/15', w: '62%' },
-    { color: 'bg-ember/18', w: '44%' },
-    { color: 'bg-ink-600/40', w: '72%' },
-    { color: 'bg-purple-400/25', w: '58%' },
-    { color: 'bg-paper/15', w: '80%' },
-  ]
+function ProblemPanel({ className }: { className?: string }) {
   return (
-    <div className="border-r border-ink-700/40 bg-[#060608]">
-      <div className="flex items-center gap-1 px-3 py-2.5 border-b border-ink-700/40 bg-ink-900/40">
-        <span className="font-mono text-[10px] text-ember/65 border-b border-ember/35 px-2 pb-px">solution.py</span>
-        <span className="font-mono text-[10px] text-paper-faint/35 px-2">✎ Whiteboard</span>
-        <span className="ml-auto font-mono text-[10px] text-paper-faint/35">Python 3</span>
+    <div className={`border-r border-ink-700/40 bg-ink-950 p-5 overflow-hidden flex flex-col gap-3 ${className ?? ''}`}>
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-xs font-semibold text-paper">Two Sum</span>
+        <span className="font-mono text-[9px] text-moss border border-moss/30 bg-moss/10 px-1.5 py-0.5 rounded-sm">Easy</span>
       </div>
-      <div className="p-4">
-        {lines.map(({ color, w }, i) => (
-          <div key={i} className="flex items-center gap-3 mb-3">
-            <span className="font-mono text-[9px] text-ink-600/80 w-4 text-right shrink-0 select-none">{i + 1}</span>
-            <div className={`h-1.5 rounded-sm ${color}`} style={{ width: w }} />
+      <p className="font-mono text-[10px] leading-relaxed text-paper-dim">
+        Given an array of integers <span className="text-ember">nums</span> and an integer <span className="text-ember">target</span>, return indices of the two numbers that add up to <span className="text-ember">target</span>.
+      </p>
+      <div className="border-l-2 border-ember/30 bg-ink-800/50 rounded-sm px-3 py-2">
+        <p className="font-mono text-[9px] text-paper-faint mb-1.5 uppercase tracking-widest">Example</p>
+        <p className="font-mono text-[10px] text-paper-dim">Input: <span className="text-paper">nums = [2,7,11,15], target = 9</span></p>
+        <p className="font-mono text-[10px] text-paper-dim">Output: <span className="text-moss">[0, 1]</span></p>
+      </div>
+      <div className="pt-2 border-t border-ink-700/40">
+        <p className="font-mono text-[9px] text-paper-faint uppercase tracking-widest mb-1.5">Constraints</p>
+        <p className="font-mono text-[10px] text-paper-dim">· 2 ≤ nums.length ≤ 10⁴</p>
+        <p className="font-mono text-[10px] text-paper-dim">· Each input has exactly one solution</p>
+      </div>
+    </div>
+  )
+}
+
+type Token = { text: string; cls: string }
+type CodeLine = Token[]
+
+const kw = (t: string): Token => ({ text: t, cls: 'text-purple-400' })
+const fn = (t: string): Token => ({ text: t, cls: 'text-sky-300' })
+// const str = (t: string): Token => ({ text: t, cls: 'text-amber-300' })
+// const num = (t: string): Token => ({ text: t, cls: 'text-orange-300' })
+const cm = (t: string): Token => ({ text: t, cls: 'text-ink-500' })
+const tx = (t: string): Token => ({ text: t, cls: 'text-paper/75' })
+const op = (t: string): Token => ({ text: t, cls: 'text-paper-faint' })
+
+const CODE_LINES: CodeLine[] = [
+  [kw('from'), tx(' typing '), kw('import'), tx(' List')],
+  [],
+  [kw('class'), tx(' '), fn('Solution'), op(':')],
+  [tx('    '), kw('def'), tx(' '), fn('twoSum'), op('('), tx('self, nums: List['), fn('int'), tx('], target: '), fn('int'), op(') -> List['), fn('int'), op(']'), op(':')],
+  [tx('        '), cm('# hash map: value → index')],
+  [tx('        '), tx('seen'), op(': dict['), fn('int'), op(', '), fn('int'), op('] = '), op('{'), op('}')],
+  [],
+  [tx('        '), kw('for'), tx(' i, n '), kw('in'), tx(' '), fn('enumerate'), op('('), tx('nums'), op(')')],
+  [tx('            '), tx('complement'), op(' = '), tx('target'), op(' - '), tx('n')],
+  [],
+  [tx('            '), kw('if'), tx(' complement '), kw('in'), tx(' seen'), op(':')],
+  [tx('                '), kw('return'), tx(' '), op('['), tx('seen'), op('['), tx('complement'), op(']'), op(', '), tx('i'), op(']')],
+  [],
+  [tx('            '), tx('seen'), op('['), tx('n'), op('] = '), tx('i')],
+]
+
+function EditorPanel() {
+  return (
+    <div className="bg-[#060608] flex flex-col h-full">
+      <div className="flex items-center gap-1 px-3 py-2.5 border-b border-ink-700/40 bg-ink-900/40 shrink-0 min-w-0">
+        <span className="font-mono text-[10px] text-ember/65 border-b border-ember/35 px-2 pb-px shrink-0">solution.py</span>
+        <span className="font-mono text-[10px] text-paper-faint/35 px-2 shrink-0 hidden sm:inline">✎ Whiteboard</span>
+        <div className="ml-auto flex items-center gap-1.5 shrink-0">
+          <span className="font-mono text-[9px] text-paper-faint/50 border border-ink-700/50 rounded-sm px-1.5 py-0.5">▶ Run</span>
+          <span className="font-mono text-[9px] text-ink-950 bg-ember/80 rounded-sm px-1.5 py-0.5">Submit</span>
+        </div>
+      </div>
+      <div className="p-3 overflow-x-hidden overflow-y-hidden">
+        {CODE_LINES.map((tokens, i) => (
+          <div key={i} className="flex items-start gap-3 leading-5 min-w-0">
+            <span className="font-mono text-[9px] text-ink-600/60 w-4 text-right shrink-0 select-none mt-px">{i + 1}</span>
+            <span className="font-mono text-[10px] whitespace-pre overflow-hidden truncate">
+              {tokens.length === 0 ? '\u00A0' : tokens.map((t, j) => (
+                <span key={j} className={t.cls}>{t.text}</span>
+              ))}
+            </span>
           </div>
         ))}
       </div>
@@ -37,41 +80,39 @@ function EditorPanel() {
   )
 }
 
+const CHAT: { role: 'ai' | 'user'; text: string }[] = [
+  { role: 'ai',   text: "Walk me through your approach before you start coding." },
+  { role: 'user', text: "I'll use a hash map — store each value's index as I iterate so I can check the complement in O(1)." },
+  { role: 'ai',   text: "Good. What's the space complexity?" },
+  { role: 'user', text: "O(n) worst case — one entry per element." },
+  { role: 'ai',   text: "And what about duplicate values in the array?" },
+]
+
 function ChatPanel() {
   return (
-    <div className="bg-ink-950 p-4 flex flex-col gap-2.5 overflow-hidden">
-      <div className="flex items-center gap-2 mb-1.5">
-        <div className="w-2 h-2 rounded-full bg-ember animate-pulse-ember shrink-0" />
-        <span className="font-mono text-[10px] text-ember/65">Jordan · AI Interviewer</span>
+    <div className="bg-ink-950 p-3 flex flex-col gap-2 overflow-hidden">
+      <div className="flex items-center gap-1.5 mb-1 shrink-0">
+        <div className="w-1.5 h-1.5 rounded-full bg-ember animate-pulse-ember shrink-0" />
+        <span className="font-mono text-[9px] text-ember/65">George · AI Interviewer</span>
       </div>
-      <div className="bg-ink-800/80 border border-ink-700/50 rounded-sm p-3 space-y-1.5">
-        {[100, 88, 62].map((w, i) => (
-          <div key={i} className="h-1.5 rounded-sm bg-ink-600/55" style={{ width: `${w}%` }} />
+      <div className="flex flex-col gap-2 overflow-hidden">
+        {CHAT.map((msg, i) => (
+          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`rounded-sm px-2.5 py-1.5 max-w-[92%] ${
+              msg.role === 'ai'
+                ? 'bg-ink-800/80 border border-ink-700/50'
+                : 'bg-ink-800/50 border border-ember/15'
+            }`}>
+              <p className={`font-mono text-[9px] leading-relaxed ${
+                msg.role === 'ai' ? 'text-paper-dim' : 'text-paper/80'
+              }`}>{msg.text}</p>
+            </div>
+          </div>
         ))}
       </div>
-      <div className="self-end bg-ink-800/50 border border-ember/12 rounded-sm p-3 space-y-1.5 w-[88%]">
-        {[100, 72].map((w, i) => (
-          <div key={i} className="h-1.5 rounded-sm bg-ember/22" style={{ width: `${w}%` }} />
-        ))}
-      </div>
-      <div className="bg-ink-800/80 border border-ink-700/50 rounded-sm p-3 space-y-1.5">
-        {[88, 65].map((w, i) => (
-          <div key={i} className="h-1.5 rounded-sm bg-ink-600/55" style={{ width: `${w}%` }} />
-        ))}
-      </div>
-      <div className="self-end bg-ink-800/50 border border-ember/12 rounded-sm p-3 space-y-1.5 w-[80%]">
-        {[100, 60].map((w, i) => (
-          <div key={i} className="h-1.5 rounded-sm bg-ember/22" style={{ width: `${w}%` }} />
-        ))}
-      </div>
-      <div className="bg-ink-800/80 border border-ink-700/50 rounded-sm p-3 space-y-1.5">
-        {[92, 75, 55].map((w, i) => (
-          <div key={i} className="h-1.5 rounded-sm bg-ink-600/55" style={{ width: `${w}%` }} />
-        ))}
-      </div>
-      <div className="mt-auto border border-ink-700/50 rounded-sm px-3 py-2 flex items-center gap-2">
-        <div className="w-2 h-2 rounded-full bg-ember/35 shrink-0" />
-        <div className="flex-1 h-1 bg-ink-700/35 rounded-sm" />
+      <div className="mt-auto shrink-0 border border-ink-700/50 rounded-sm px-2.5 py-1.5 flex items-center gap-2">
+        <div className="w-1.5 h-1.5 rounded-full bg-ember/40 shrink-0" />
+        <span className="font-mono text-[9px] text-paper-faint/30">Listening…</span>
       </div>
     </div>
   )
@@ -206,9 +247,10 @@ export function BrowserScrollReveal() {
               <span className="font-mono text-[10px] text-ember/55 shrink-0">● LIVE</span>
             </div>
 
-            {/* 2-column body: editor + chat */}
-            <div className="grid grid-cols-[1fr_120px] lg:grid-cols-[1fr_200px] min-h-[240px] lg:min-h-[340px]">
-              <EditorPanel />
+            {/* body: editor+chat on mobile, problem+editor+chat on desktop */}
+            <div className="grid grid-cols-[1fr_130px] lg:grid-cols-[200px_1fr_200px] min-h-[240px] lg:min-h-[340px] overflow-hidden">
+              <ProblemPanel className="hidden lg:block" />
+              <div className="min-w-0 overflow-hidden border-r border-ink-700/40"><EditorPanel /></div>
               <ChatPanel />
             </div>
         </motion.div>
