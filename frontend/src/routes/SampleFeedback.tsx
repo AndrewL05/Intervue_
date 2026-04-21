@@ -1,26 +1,12 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { useAuth } from '@clerk/clerk-react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { toast } from 'sonner'
 import { cn } from '@/lib/cn'
-import { apiFetch } from '@/lib/api'
+import { API_BASE } from '@/lib/api'
 import type { ApiFeedbackReport } from '@/lib/apiTypes'
 
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.08 } } }
-const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } } }
-
-interface MetricScore { label: string; score: number; max: number }
-interface QuestionFeedbackUI {
-  questionId: string
-  questionText: string
-  score: number
-  evidenceSpans: { text: string; context: string }[]
-  strengths: string[]
-  improvements: string[]
-  betterAnswer?: string
-}
-interface DrillUI { title: string; description: string; type: string }
+const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' as const } } }
 
 function categoryLabel(key: string): string {
   const map: Record<string, string> = {
@@ -33,21 +19,8 @@ function categoryLabel(key: string): string {
   return map[key] ?? key.replace(/_/g, ' ')
 }
 
-function metricsFromCategories(cats: ApiFeedbackReport['category_scores']): MetricScore[] {
-  return (Object.entries(cats) as [string, number | null][])
-    .filter(([, v]) => v != null)
-    .map(([k, v]) => ({ label: categoryLabel(k), score: Math.round((v ?? 0) * 10), max: 100 }))
-}
-
-function drillsFromStrings(raw: string[]): DrillUI[] {
-  return raw.map((d) => {
-    const text = d.replace(/^Practice:\s*/i, '')
-    return { title: text, description: `Work on: ${text}`, type: 'Communication' }
-  })
-}
-
-function MetricRing({ label, score, max }: MetricScore) {
-  const pct = score / max
+function MetricRing({ label, score }: { label: string; score: number }) {
+  const pct = score / 100
   const r = 32
   const circ = 2 * Math.PI * r
   const offset = circ * (1 - pct)
@@ -59,7 +32,7 @@ function MetricRing({ label, score, max }: MetricScore) {
           <circle cx="40" cy="40" r={r} fill="none" stroke="rgba(250,247,242,0.06)" strokeWidth="4" />
           <motion.circle cx="40" cy="40" r={r} fill="none" stroke={color} strokeWidth="4"
             strokeDasharray={circ} initial={{ strokeDashoffset: circ }}
-            animate={{ strokeDashoffset: offset }} transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
+            animate={{ strokeDashoffset: offset }} transition={{ duration: 1.2, delay: 0.3, ease: 'easeOut' }}
             strokeLinecap="round" />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
@@ -71,31 +44,33 @@ function MetricRing({ label, score, max }: MetricScore) {
   )
 }
 
-function QuestionAccordion({ qf, idx }: { qf: QuestionFeedbackUI; idx: number }) {
+function QuestionAccordion({ qf, idx }: { qf: ApiFeedbackReport['per_question_feedback'][number]; idx: number }) {
   const [open, setOpen] = useState(idx === 0)
+  const score = Math.round(qf.score * 10)
+  const label = qf.question_text ?? `Question ${idx + 1}`
   return (
     <div className={cn('rounded-md border transition-all duration-200', open ? 'border-ember/20 bg-ink-900' : 'border-ink-700/60 bg-ink-900 hover:border-ink-600')}>
       <button onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between p-5 text-left">
-        <div className="flex items-center gap-4">
-          <span className="font-mono text-xs text-paper-faint">Q{String(idx + 1).padStart(2, '0')}</span>
-          <p className="text-sm font-medium text-paper line-clamp-1">{qf.questionText}</p>
+        <div className="flex items-center gap-4 min-w-0">
+          <span className="font-mono text-xs text-paper-faint shrink-0">Q{String(idx + 1).padStart(2, '0')}</span>
+          <p className="text-sm font-medium text-paper line-clamp-1">{label}</p>
         </div>
         <div className="flex items-center gap-3 ml-4 shrink-0">
-          <span className={cn('font-mono text-sm font-semibold', qf.score >= 75 ? 'text-moss' : qf.score >= 55 ? 'text-ember' : 'text-crimson')}>{qf.score}</span>
+          <span className={cn('font-mono text-sm font-semibold', score >= 75 ? 'text-moss' : score >= 55 ? 'text-ember' : 'text-crimson')}>{score}</span>
           <span className={cn('font-mono text-xs text-paper-faint transition-transform duration-200', open && 'rotate-180')}>▾</span>
         </div>
       </button>
       {open && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25 }}
           className="border-t border-ink-700/50 p-5 space-y-5">
-          {qf.evidenceSpans.length > 0 && (
+          {qf.evidence.length > 0 && (
             <div>
               <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-paper-faint">Evidence from your answer</p>
               <div className="space-y-2">
-                {qf.evidenceSpans.map((span, i) => (
+                {qf.evidence.map((e, i) => (
                   <div key={i} className="rounded-sm border-l-2 border-ember/50 bg-ember/5 px-4 py-3">
-                    <p className="mb-1 text-sm text-paper italic">"{span.text}"</p>
-                    {span.context && <p className="font-mono text-[10px] text-paper-faint">{span.context}</p>}
+                    <p className="mb-1 text-sm text-paper italic">"{e.quote}"</p>
+                    <p className="font-mono text-[10px] text-paper-faint">{e.note}</p>
                   </div>
                 ))}
               </div>
@@ -115,10 +90,10 @@ function QuestionAccordion({ qf, idx }: { qf: QuestionFeedbackUI; idx: number })
               </ul>
             </div>
           </div>
-          {qf.betterAnswer && (
+          {qf.better_answer_example && (
             <div>
               <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-paper-faint">Stronger answer</p>
-              <p className="rounded-sm border border-ink-700/50 bg-ink-800 px-4 py-3 text-sm leading-relaxed text-paper-dim italic">"{qf.betterAnswer}"</p>
+              <p className="rounded-sm border border-ink-700/50 bg-ink-800 px-4 py-3 text-sm leading-relaxed text-paper-dim italic">"{qf.better_answer_example}"</p>
             </div>
           )}
         </motion.div>
@@ -127,60 +102,34 @@ function QuestionAccordion({ qf, idx }: { qf: QuestionFeedbackUI; idx: number })
   )
 }
 
-export function Feedback() {
-  const { id: sessionId } = useParams<{ id: string }>()
+export function SampleFeedback() {
   const navigate = useNavigate()
-  const { getToken } = useAuth()
   const [report, setReport] = useState<ApiFeedbackReport | null>(null)
   const [loading, setLoading] = useState(true)
-  const [pollCount, setPollCount] = useState(0)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
-    if (!sessionId) return
-    let cancelled = false
-
-    async function fetchFeedback() {
-      try {
-        const token = await getToken()
-        if (!token || cancelled) return
-        const data = await apiFetch<ApiFeedbackReport>(`/api/feedback/${sessionId}`, token)
-        if (!cancelled) { setReport(data); setLoading(false) }
-      } catch {
-        // 404 means not ready yet — retry is scheduled by the timeout effect
-      }
-    }
-
-    fetchFeedback()
-    return () => { cancelled = true }
-  }, [sessionId, getToken, pollCount])
-
-  useEffect(() => {
-    if (!loading) return
-    if (pollCount >= 40) {
-      setTimeout(() => setLoading(false), 0)
-      return
-    }
-    const id = setTimeout(() => setPollCount((n) => n + 1), 3000)
-    return () => clearTimeout(id)
-  }, [pollCount, loading])
+    fetch(`${API_BASE}/api/feedback/demo`)
+      .then((r) => { if (!r.ok) throw new Error(); return r.json() })
+      .then((data) => setReport(data))
+      .catch(() => setError(true))
+      .finally(() => setLoading(false))
+  }, [])
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <p className="font-mono text-xs uppercase tracking-widest text-paper-faint mb-2">Generating feedback</p>
-          <p className="font-mono text-[10px] text-paper-faint/60">This takes a few seconds...</p>
-        </div>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <p className="font-mono text-xs uppercase tracking-widest text-paper-faint animate-pulse">Loading sample...</p>
       </div>
     )
   }
 
-  if (!report) {
+  if (error || !report) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-center">
-          <p className="font-mono text-xs text-crimson">Feedback unavailable.</p>
-          <button onClick={() => navigate('/history')} className="mt-4 font-mono text-xs text-ember">← Back to history</button>
+          <p className="font-mono text-xs text-crimson">Could not load sample feedback.</p>
+          <button onClick={() => navigate('/')} className="mt-4 font-mono text-xs text-ember">← Back to home</button>
         </div>
       </div>
     )
@@ -188,25 +137,30 @@ export function Feedback() {
 
   const overallScore = Math.round(report.overall_score * 10)
   const scoreColor = overallScore >= 75 ? 'text-moss' : overallScore >= 55 ? 'text-ember' : 'text-crimson'
-  const metrics = metricsFromCategories(report.category_scores)
-  const drills = drillsFromStrings(report.targeted_drills)
 
-  const perQuestion: QuestionFeedbackUI[] = report.per_question_feedback.map((qf, idx) => ({
-    questionId: qf.question_id,
-    questionText: qf.question_text ?? `Question ${idx + 1}`,
-    score: Math.round(qf.score * 10),
-    evidenceSpans: qf.evidence.map((e) => ({ text: e.quote, context: e.note })),
-    strengths: qf.strengths,
-    improvements: qf.improvements,
-    betterAnswer: qf.better_answer_example ?? undefined,
-  }))
+  const metrics = (Object.entries(report.category_scores) as [string, number | null][])
+    .filter(([, v]) => v != null)
+    .map(([k, v]) => ({ label: categoryLabel(k), score: Math.round((v ?? 0) * 10) }))
+
+  const drills = report.targeted_drills.map((d) => d.replace(/^Practice:\s*/i, ''))
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
+      <div className="mb-8 flex items-center gap-3 rounded-sm border border-ember/20 bg-ember/5 px-4 py-3">
+        <span className="font-mono text-[10px] uppercase tracking-widest text-ember shrink-0">Demo</span>
+        <p className="font-mono text-[10px] text-paper-faint">
+          This is a sample report.{' '}
+          <button onClick={() => navigate('/setup')} className="text-ember hover:text-ember-soft underline underline-offset-2 transition-colors">
+            Run a real session
+          </button>{' '}
+          to get feedback on your own interview.
+        </p>
+      </div>
+
       <motion.div variants={stagger} initial="hidden" animate="show">
         <motion.div variants={fadeUp} className="mb-10">
           <p className="mb-2 font-mono text-xs uppercase tracking-widest text-paper-faint">
-            Session · {new Date(report.generated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            Technical · Two Sum · Sample session
           </p>
           <h1 className="font-display text-4xl font-semibold text-paper md:text-5xl">Interview Feedback</h1>
         </motion.div>
@@ -219,7 +173,7 @@ export function Feedback() {
               <p className="mt-1 font-mono text-xs text-paper-faint">/ 100</p>
             </div>
             <div className="h-px w-full bg-ink-700/60 sm:h-20 sm:w-px" />
-            <div className="flex flex-wrap gap-8">
+            <div className="flex flex-wrap gap-6">
               {metrics.map((m) => <MetricRing key={m.label} {...m} />)}
             </div>
           </div>
@@ -240,24 +194,22 @@ export function Feedback() {
           </div>
         </motion.div>
 
-        {perQuestion.length > 0 && (
+        {report.per_question_feedback.length > 0 && (
           <motion.div variants={fadeUp} className="mb-8">
             <p className="mb-4 font-mono text-xs uppercase tracking-widest text-paper-faint">Question breakdown</p>
             <div className="space-y-3">
-              {perQuestion.map((qf, i) => <QuestionAccordion key={qf.questionId} qf={qf} idx={i} />)}
+              {report.per_question_feedback.map((qf, i) => <QuestionAccordion key={qf.question_id} qf={qf} idx={i} />)}
             </div>
           </motion.div>
         )}
 
         {drills.length > 0 && (
           <motion.div variants={fadeUp} className="mb-10">
-            <p className="mb-4 font-mono text-xs uppercase tracking-widest text-paper-faint">AREAS TO IMPROVE</p>
+            <p className="mb-4 font-mono text-xs uppercase tracking-widest text-paper-faint">Targeted drills</p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {drills.map((d, i) => (
                 <div key={i} className="rounded-md border border-ink-700/60 bg-ink-900 p-5">
-                  <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-ember">{d.type}</p>
-                  <p className="mb-2 font-display text-sm font-semibold text-paper">{d.title}</p>
-                  <p className="text-xs leading-relaxed text-paper-dim">{d.description}</p>
+                  <p className="font-mono text-xs leading-relaxed text-paper-dim">{d}</p>
                 </div>
               ))}
             </div>
@@ -265,17 +217,13 @@ export function Feedback() {
         )}
 
         <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-4">
-          <button
-            onClick={() => toast.info('Audio replay coming soon')}
-            className="flex items-center gap-2 rounded-sm border border-ink-700/60 px-4 py-2 font-mono text-xs text-paper-faint hover:border-paper-faint/30 hover:text-paper-dim transition-all duration-200"
-          >
-            ▶ Replay session audio
+          <button onClick={() => navigate('/setup')}
+            className="flex items-center gap-2 rounded-sm bg-ember px-5 py-2 font-mono text-xs text-ink-950 hover:bg-ember-soft transition-all duration-200">
+            Try a real session →
           </button>
-          <button onClick={() => navigate('/setup')} className="flex items-center gap-2 rounded-sm bg-ember px-5 py-2 font-mono text-xs text-ink-950 hover:bg-ember-soft transition-all duration-200">
-            Practice again →
-          </button>
-          <button onClick={() => navigate('/history')} className="font-mono text-xs text-paper-faint hover:text-paper-dim transition-colors border-b border-transparent hover:border-paper-faint/30 pb-px">
-            View all sessions →
+          <button onClick={() => navigate('/')}
+            className="font-mono text-xs text-paper-faint hover:text-paper-dim transition-colors border-b border-transparent hover:border-paper-faint/30 pb-px">
+            ← Back to home
           </button>
         </motion.div>
       </motion.div>

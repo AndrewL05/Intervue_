@@ -30,6 +30,7 @@ def _report_to_response(doc: dict) -> FeedbackReportResponse:
         per_question_feedback=[
             QuestionFeedbackResponse(
                 question_id=qf.question_id,
+                question_text=qf.question_text,
                 score=qf.score,
                 strengths=qf.strengths,
                 improvements=qf.improvements,
@@ -50,6 +51,18 @@ def _report_to_response(doc: dict) -> FeedbackReportResponse:
         targeted_drills=report.targeted_drills,
         generated_at=report.generated_at,
     )
+
+
+@router.get("/demo", response_model=FeedbackReportResponse)
+def get_demo_feedback():
+    """Public endpoint — returns the seeded demo feedback report, no auth required."""
+    doc = db.feedback.find_one({"session_id": "demo"})
+    if not doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Demo feedback not found. Run scripts/seed_demo.py.",
+        )
+    return _report_to_response(doc)
 
 
 @router.get("/{session_id}", response_model=FeedbackReportResponse)
