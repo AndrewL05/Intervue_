@@ -91,6 +91,7 @@ export interface ApiEvidenceSpan {
 
 export interface ApiQuestionFeedback {
   question_id: string
+  question_text: string | null
   score: number
   strengths: string[]
   improvements: string[]

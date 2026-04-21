@@ -44,16 +44,10 @@ function MetricRing({ label, score }: { label: string; score: number }) {
   )
 }
 
-const DEMO_QUESTION_TEXT: Record<string, string> = {
-  'demo-q1': 'Walk me through your approach to Two Sum before you start coding.',
-  'demo-q2': 'What is the space complexity of your solution, and is there a way to reduce it?',
-  'demo-q3': 'What happens if the array contains duplicate values, like [3, 3] with target 6?',
-}
-
 function QuestionAccordion({ qf, idx }: { qf: ApiFeedbackReport['per_question_feedback'][number]; idx: number }) {
   const [open, setOpen] = useState(idx === 0)
   const score = Math.round(qf.score * 10)
-  const label = DEMO_QUESTION_TEXT[qf.question_id] ?? `Question ${idx + 1}`
+  const label = qf.question_text ?? `Question ${idx + 1}`
   return (
     <div className={cn('rounded-md border transition-all duration-200', open ? 'border-ember/20 bg-ink-900' : 'border-ink-700/60 bg-ink-900 hover:border-ink-600')}>
       <button onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between p-5 text-left">

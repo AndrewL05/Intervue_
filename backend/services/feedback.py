@@ -230,6 +230,7 @@ async def _run_feedback_pipeline(session_id: str) -> None:
         ]
         question_feedback_list.append(QuestionFeedback(
             question_id=qid,
+            question_text=q.get("prompt"),
             score=result["score"],
             strengths=result.get("strengths", []),
             improvements=result.get("improvements", []),

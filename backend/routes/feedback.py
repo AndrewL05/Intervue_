@@ -30,6 +30,7 @@ def _report_to_response(doc: dict) -> FeedbackReportResponse:
         per_question_feedback=[
             QuestionFeedbackResponse(
                 question_id=qf.question_id,
+                question_text=qf.question_text,
                 score=qf.score,
                 strengths=qf.strengths,
                 improvements=qf.improvements,

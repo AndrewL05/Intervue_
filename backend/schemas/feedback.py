@@ -25,6 +25,7 @@ class EvidenceSpanResponse(BaseModel):
 
 class QuestionFeedbackResponse(BaseModel):
     question_id: str
+    question_text: str | None = None
     score: float
     strengths: list[str] = Field(default_factory=list)
     improvements: list[str] = Field(default_factory=list)
