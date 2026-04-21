@@ -40,6 +40,8 @@ createRoot(document.getElementById('root')!).render(
           socialButtonsBlockButton: { backgroundColor: '#2E2E32', border: '1px solid rgba(255,255,255,0.12)', color: '#E4E4E7' },
           socialButtonsBlockButtonText: { color: '#E4E4E7', fontWeight: '500' },
           socialButtonsIconButton: { backgroundColor: '#2E2E32', border: '1px solid rgba(255,255,255,0.12)' },
+          badge: { display: 'none' },
+          footer: { display: 'none' },
         },
       }}
     >
