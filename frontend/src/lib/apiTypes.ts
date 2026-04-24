@@ -1,7 +1,7 @@
 // Matches FastAPI response schemas exactly (snake_case)
 
 export type SessionStatus = 'pending' | 'active' | 'completed' | 'abandoned'
-export type SessionMode = 'technical' | 'behavioral' | 'mixed'
+export type SessionMode = 'technical' | 'behavioral' | 'mixed' | 'resume'
 export type BehavioralPersona = 'supportive' | 'corporate' | 'pressure' | 'probing'
 
 export interface ApiSession {
