@@ -54,13 +54,23 @@ async def create_session(
         difficulty=body.difficulty,
         duration_minutes=body.duration_minutes,
         interviewer_tone=body.interviewer_tone,
+        behavioral_persona=body.behavioral_persona,
+        resume_text=body.resume_text,
+        resume_s3_url=body.resume_s3_url,
     )
 
     result = db.sessions.insert_one(session.to_mongo())
     session_id = str(result.inserted_id)
     session.id = session_id
 
-    questions: list[Question] = plan_questions(session_id, body.mode, body.difficulty, body.duration_minutes)
+    from services.question_planner import plan_resume_questions
+    if body.mode == "resume":
+        if not body.resume_text:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Resume text is required for resume mode")
+        questions = await plan_resume_questions(session_id, body.resume_text, body.duration_minutes)
+    else:
+        questions = plan_questions(session_id, body.mode, body.difficulty, body.duration_minutes)
+        
     question_ids: list[str] = []
     if questions:
         q_docs = [q.to_mongo() for q in questions]
