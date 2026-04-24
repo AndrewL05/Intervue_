@@ -34,6 +34,13 @@ export interface ApiAgentUrl {
   signed_url: string
 }
 
+export interface ApiCodeSnapshot {
+  sequence: number
+  language: string
+  timestamp: string
+  code: string
+}
+
 export interface ApiProblem {
   id: string
   title: string
