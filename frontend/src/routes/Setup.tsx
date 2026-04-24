@@ -52,7 +52,7 @@ const DURATIONS = [
 const INTERVIEW_TYPES = [
   { id: 'behavioral' as InterviewType, label: 'Behavioral', hint: 'Voice-led STAR questions and follow-ups' },
   { id: 'technical' as InterviewType, label: 'Technical', hint: 'LeetCode-style coding with voice interviewer' },
-  { id: 'resume' as InterviewType, label: 'Resume Deep Dive', hint: 'Questions based on your uploaded resume' },
+  { id: 'resume' as InterviewType, label: 'Resume Deep Dive', hint: 'Questions based on your resume' },
 ]
 
 function totalSteps(interviewType: InterviewType): number {
@@ -71,7 +71,7 @@ function stepLabel(step: number, interviewType: InterviewType): { title: string;
   }
   
   if (interviewType === 'resume') {
-    if (step === 2) return { title: 'Upload Resume', subtitle: 'Upload your PDF resume so we can tailor the questions.' }
+    if (step === 2) return { title: 'Upload Resume', subtitle: 'Upload your resume PDF so we can tailor the questions.' }
     if (step === 3) return { title: 'Duration', subtitle: 'How much time do you have?' }
     if (step === 4) return { title: 'Interviewer', subtitle: "Choose your interviewer's style." }
   }
@@ -390,7 +390,7 @@ export function Setup() {
                       </div>
                     ) : (
                       <>
-                        <h3 className="mb-2 font-medium text-paper">Upload your PDF</h3>
+                        <h3 className="mb-2 font-medium text-paper">Upload Resume PDF</h3>
                         <p className="mb-6 text-sm text-paper-dim">Only PDF format is supported.</p>
                         <button
                           onClick={() => fileInputRef.current?.click()}
