@@ -83,3 +83,16 @@ class QuestionResponse(BaseModel):
     order: int
     coding_problem_id: str | None = None
     problem: ProblemResponse | None = None
+
+
+class CodeSnapshotRequest(BaseModel):
+    language: str
+    code: str
+    sequence: int
+
+
+class CodeSnapshotDetail(BaseModel):
+    sequence: int
+    language: str
+    timestamp: str
+    code: str

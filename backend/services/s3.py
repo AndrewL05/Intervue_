@@ -4,6 +4,7 @@ from fastapi import UploadFile
 import uuid
 import os
 import logging
+import json
 from config import settings
 
 logger = logging.getLogger(__name__)
@@ -165,4 +166,27 @@ class S3MultipartAudioStreamer:
                 UploadId=self.upload_id
             )
             return None
+
+
+def upload_json_to_s3(data: dict, object_name: str) -> str:
+    """Upload a JSON object to S3."""
+    try:
+        body = json.dumps(data).encode('utf-8')
+        s3_client.put_object(Bucket=BUCKET_NAME, Key=object_name, Body=body, ContentType="application/json")
+        logger.info(f"Uploaded JSON to s3://{BUCKET_NAME}/{object_name}")
+        return f"s3://{BUCKET_NAME}/{object_name}"
+    except ClientError as e:
+        logger.error(f"Failed to upload JSON to S3: {e}")
+        raise e
+
+
+def download_json_from_s3(object_name: str) -> dict | None:
+    """Download and parse a JSON object from S3."""
+    try:
+        response = s3_client.get_object(Bucket=BUCKET_NAME, Key=object_name)
+        data = json.loads(response['Body'].read().decode('utf-8'))
+        return data
+    except ClientError as e:
+        logger.error(f"Failed to download JSON from S3: {e}")
+        return None
 
