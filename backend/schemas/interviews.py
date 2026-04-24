@@ -11,11 +11,14 @@ from models.interview_session import (
 
 class CreateSessionRequest(BaseModel):
     mode: InterviewMode
-    role: str
+    role: str | None = None
     company: str | None = None
     difficulty: Difficulty = Difficulty.medium
     duration_minutes: int = Field(default=30, ge=5, le=120)
     interviewer_tone: InterviewerTone = InterviewerTone.neutral
+    behavioral_persona: BehavioralPersona | None = None
+    resume_text: str | None = None
+    resume_s3_url: str | None = None
 
 
 class CreateBehavioralSessionRequest(BaseModel):
@@ -40,6 +43,8 @@ class SessionResponse(BaseModel):
     duration_minutes: int
     interviewer_tone: InterviewerTone | None = None
     behavioral_persona: BehavioralPersona | None = None
+    resume_text: str | None = None
+    resume_s3_url: str | None = None
     status: SessionStatus
     question_ids: list[str]
     elevenlabs_agent_id: str | None = None
