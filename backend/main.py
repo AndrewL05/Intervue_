@@ -9,6 +9,7 @@ from routes.code import router as code_router
 from routes.feedback import router as feedback_router
 from routes.companies import router as companies_router
 from routes.upload import router as upload_router
+from routes.tts import router as tts_router
 from config import settings
 from db import db
 import httpx
@@ -32,6 +33,7 @@ app.include_router(code_router)
 app.include_router(feedback_router)
 app.include_router(companies_router)
 app.include_router(upload_router)
+app.include_router(tts_router)
 
 @app.get("/")
 def root():
