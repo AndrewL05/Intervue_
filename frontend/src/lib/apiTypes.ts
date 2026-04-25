@@ -117,3 +117,8 @@ export interface ApiFeedbackReport {
   targeted_drills: string[]
   generated_at: string
 }
+
+export interface ApiReportShare {
+  url: string
+  expires_in: number
+}

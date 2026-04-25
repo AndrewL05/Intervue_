@@ -200,6 +200,8 @@ export function Feedback() {
   const [snapshots, setSnapshots] = useState<ApiCodeSnapshot[]>([])
   const [snapshotIdx, setSnapshotIdx] = useState(0)
   const [loadingSnapshots, setLoadingSnapshots] = useState(false)
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
+  const [sharing, setSharing] = useState(false)
 
   useEffect(() => {
     if (!sessionId) return
@@ -252,6 +254,34 @@ export function Feedback() {
     const id = setTimeout(() => setPollCount((n) => n + 1), 3000)
     return () => clearTimeout(id)
   }, [pollCount, loading])
+
+  async function handleShare() {
+    if (!sessionId || shareUrl) return
+    const token = await getToken()
+    if (!token) {
+      toast.error('Authentication error. Please try again.')
+      return
+    }
+    setSharing(true)
+    try {
+      const data = await apiFetch<{ url: string; expires_in: number }>(
+        `/api/feedback/${sessionId}/share`,
+        token,
+        { method: 'POST' }
+      )
+      setShareUrl(data.url)
+      try {
+        await navigator.clipboard.writeText(data.url)
+        toast.success('Share link copied to clipboard! Valid for 7 days.')
+      } catch {
+        toast.info(`Share link ready — copy manually: ${data.url}`)
+      }
+    } catch {
+      toast.error('Failed to generate share link.')
+    } finally {
+      setSharing(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -378,6 +408,13 @@ export function Feedback() {
               ▶ Replay session audio
             </button>
           )}
+          <button
+            onClick={handleShare}
+            disabled={sharing || !!shareUrl}
+            className="flex items-center gap-2 rounded-sm border border-ink-700/60 px-4 py-2 font-mono text-xs text-paper-faint hover:border-paper-faint/30 hover:text-paper-dim transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {sharing ? 'Generating...' : shareUrl ? '✓ Link copied' : '↗ Share Report'}
+          </button>
           <button onClick={() => navigate('/setup')} className="flex items-center gap-2 rounded-sm bg-ember px-5 py-2 font-mono text-xs text-ink-950 hover:bg-ember-soft transition-all duration-200">
             Practice again →
           </button>
