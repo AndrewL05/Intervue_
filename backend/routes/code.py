@@ -32,7 +32,7 @@ def _validate_request(session_id: str, body: CodeRunRequest, clerk_user_id: str)
 
     if body.language not in LANGUAGE_IDS:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Unsupported language '{body.language}'. Supported: {list(LANGUAGE_IDS.keys())}",
         )
 
