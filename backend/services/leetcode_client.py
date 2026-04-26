@@ -64,13 +64,16 @@ async def fetch_problem_detail(slug: str) -> dict | None:
             resp.raise_for_status()
             data = resp.json()
 
+        raw_html = data.get("question", data.get("content", ""))
         result = {
-            "title": data.get("title", ""),
+            "title": data.get("questionTitle", data.get("title", "")),
             "titleSlug": data.get("titleSlug", slug),
             "difficulty": data.get("difficulty", ""),
-            "description": _strip_html(data.get("content", "")),
+            "description": _strip_html(raw_html),
             "topic_tags": [t["name"] for t in data.get("topicTags", [])],
             "hints": data.get("hints", []),
+            "example_testcases": data.get("exampleTestcases", ""),
+            "question_html": raw_html,
         }
         _detail_cache[slug] = result
         _detail_cache_at[slug] = now

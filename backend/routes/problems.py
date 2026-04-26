@@ -1,10 +1,16 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, Query
+from datetime import datetime, timezone
+from fastapi import APIRouter, Depends, HTTPException, Query
+from auth.clerk import require_auth
+from schemas.problems import (
+    ProblemDetail, ProblemExample, ProblemListItem, ProblemListResponse,
+    SolvedSlugsResponse, MarkSolvedResponse,
+)
 
 from db import db
-from schemas.problems import ProblemDetail, ProblemExample, ProblemListItem, ProblemListResponse
 from services.leetcode_client import fetch_problem_detail, fetch_problem_list
+from services.test_case_generator import generate_test_cases
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/problems", tags=["problems"])
@@ -106,6 +112,100 @@ async def list_problems(
     )
     total = len(combined)
     return ProblemListResponse(problems=combined[skip: skip + limit], total=total)
+
+
+@router.get("/solved", response_model=SolvedSlugsResponse)
+def get_solved_problems(clerk_user_id: str = Depends(require_auth)):
+    """Return list of problem slugs the current user has marked solved."""
+    docs = db.solved_problems.find(
+        {"clerk_user_id": clerk_user_id},
+        {"_id": 0, "problem_slug": 1},
+    )
+    return SolvedSlugsResponse(solved_slugs=[d["problem_slug"] for d in docs])
+
+
+@router.post("/{slug}/solve", response_model=MarkSolvedResponse)
+def mark_problem_solved(slug: str, clerk_user_id: str = Depends(require_auth)):
+    """Mark a problem as solved for the current user (idempotent)."""
+    result = db.solved_problems.update_one(
+        {"clerk_user_id": clerk_user_id, "problem_slug": slug},
+        {"$setOnInsert": {
+            "clerk_user_id": clerk_user_id,
+            "problem_slug": slug,
+            "solved_at": datetime.now(timezone.utc),
+        }},
+        upsert=True,
+    )
+    already_solved = result.matched_count > 0
+    return MarkSolvedResponse(slug=slug, already_solved=already_solved)
+
+
+@router.post("/{slug}/generate-tests", response_model=ProblemDetail)
+async def generate_problem_tests(slug: str, clerk_user_id: str = Depends(require_auth)):
+    """Generate test cases + starter code for a problem.
+
+    Tries to extract real test cases from alfa-leetcode-api example data first.
+    Falls back to LLM generation if extraction yields nothing.
+    If the problem already has test cases, returns current detail without regenerating.
+    """
+    existing = db.problems.find_one({"id": slug}, {"_id": 0})
+    if existing and existing.get("test_cases"):
+        return _local_to_detail(existing)
+
+    if existing:
+        update_fields: dict = {}
+        problem_dict = {"title": existing.get("title", ""), "description": existing.get("description", "")}
+        example_testcases = ""
+        question_html = ""
+    else:
+        detail = await fetch_problem_detail(slug)
+        if not detail:
+            raise HTTPException(status_code=404, detail="Problem not found")
+        update_fields = {
+            "id": slug,
+            "title": detail["title"],
+            "difficulty": detail["difficulty"].lower(),
+            "description": detail["description"],
+            "topic_tags": detail.get("topic_tags", []),
+            "examples": [],
+            "constraints": [],
+        }
+        problem_dict = {"title": detail["title"], "description": detail["description"]}
+        example_testcases = detail.get("example_testcases", "")
+        question_html = detail.get("question_html", "")
+
+    # Try API-based extraction first
+    from services.test_case_extractor import parse_test_cases_from_api
+    test_cases = parse_test_cases_from_api(example_testcases, question_html)
+
+    if test_cases:
+        # Real test cases from API — only need LLM for starter_code
+        from services.test_case_generator import generate_starter_code
+        starter_code = await generate_starter_code(problem_dict)
+        if not starter_code:
+            starter_code = {}  # Keep real test cases even if starter_code fails
+
+    if not test_cases:
+        # Fall back to full LLM generation
+        generated = await generate_test_cases(problem_dict)
+        if not generated or not generated.get("test_cases"):
+            raise HTTPException(status_code=502, detail="Failed to generate test cases")
+        test_cases = generated["test_cases"]
+        starter_code = generated.get("starter_code", {})
+
+    update_fields["test_cases"] = test_cases
+    update_fields["starter_code"] = starter_code
+
+    db.problems.update_one(
+        {"id": slug},
+        {"$set": update_fields},
+        upsert=True,
+    )
+
+    updated = db.problems.find_one({"id": slug}, {"_id": 0})
+    if not updated:
+        raise HTTPException(status_code=500, detail="Failed to retrieve updated problem")
+    return _local_to_detail(updated)
 
 
 @router.get("/{slug}", response_model=ProblemDetail)

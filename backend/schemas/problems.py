@@ -33,3 +33,12 @@ class ProblemDetail(BaseModel):
     topic_tags: list[str]
     starter_code: dict[str, str] | None = None
     hints: list[str] = []
+
+
+class SolvedSlugsResponse(BaseModel):
+    solved_slugs: list[str]
+
+
+class MarkSolvedResponse(BaseModel):
+    slug: str
+    already_solved: bool
