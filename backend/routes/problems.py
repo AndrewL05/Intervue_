@@ -10,7 +10,8 @@ from schemas.problems import (
 
 from db import db
 from services.leetcode_client import fetch_problem_detail, fetch_problem_list
-from services.test_case_generator import generate_test_cases
+from services.leetcode_html_parser import parse_question_html
+from services.test_case_generator import generate_full_problem
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/problems", tags=["problems"])
@@ -142,65 +143,45 @@ def mark_problem_solved(slug: str, clerk_user_id: str = Depends(require_auth)):
 
 @router.post("/{slug}/generate-tests", response_model=ProblemDetail)
 async def generate_problem_tests(slug: str, clerk_user_id: str = Depends(require_auth)):
-    """Generate test cases + starter code for a problem.
+    """Generate test cases + starter code for a problem using the enriched LLM pipeline.
 
-    Tries to extract real test cases from alfa-leetcode-api example data first.
-    Falls back to LLM generation if extraction yields nothing.
-    If the problem already has test cases, returns current detail without regenerating.
+    Returns existing data immediately if test_cases already present.
     """
     existing = db.problems.find_one({"id": slug}, {"_id": 0})
     if existing and existing.get("test_cases"):
         return _local_to_detail(existing)
 
-    if existing:
-        update_fields: dict = {}
-        problem_dict = {"title": existing.get("title", ""), "description": existing.get("description", "")}
-        example_testcases = ""
-        question_html = ""
-    else:
-        detail = await fetch_problem_detail(slug)
-        if not detail:
-            raise HTTPException(status_code=404, detail="Problem not found")
-        update_fields = {
-            "id": slug,
-            "title": detail["title"],
-            "difficulty": detail["difficulty"].lower(),
-            "description": detail["description"],
-            "topic_tags": detail.get("topic_tags", []),
-            "examples": [],
-            "constraints": [],
-        }
-        problem_dict = {"title": detail["title"], "description": detail["description"]}
-        example_testcases = detail.get("example_testcases", "")
-        question_html = detail.get("question_html", "")
+    detail = await fetch_problem_detail(slug)
+    if not detail:
+        raise HTTPException(status_code=404, detail="Problem not found")
 
-    # Try API-based extraction first
-    from services.test_case_extractor import parse_test_cases_from_api
-    test_cases = parse_test_cases_from_api(example_testcases, question_html)
+    parsed = parse_question_html(detail.get("question_html", ""))
+    description = parsed["description"] or detail.get("description", "")
 
-    if test_cases:
-        # Real test cases from API — only need LLM for starter_code
-        from services.test_case_generator import generate_starter_code
-        starter_code = await generate_starter_code(problem_dict)
-        if not starter_code:
-            starter_code = {}  # Keep real test cases even if starter_code fails
+    problem_input = {
+        "title": detail["title"],
+        "description": description,
+        "examples": parsed["examples"],
+        "constraints": parsed["constraints"],
+    }
 
-    if not test_cases:
-        # Fall back to full LLM generation
-        generated = await generate_test_cases(problem_dict)
-        if not generated or not generated.get("test_cases"):
-            raise HTTPException(status_code=502, detail="Failed to generate test cases")
-        test_cases = generated["test_cases"]
-        starter_code = generated.get("starter_code", {})
+    generated = await generate_full_problem(problem_input)
+    if not generated:
+        raise HTTPException(status_code=502, detail="Failed to generate test cases")
 
-    update_fields["test_cases"] = test_cases
-    update_fields["starter_code"] = starter_code
+    doc = {
+        "id": slug,
+        "title": detail["title"],
+        "difficulty": detail["difficulty"].lower(),
+        "description": description,
+        "examples": parsed["examples"],
+        "constraints": parsed["constraints"],
+        "topic_tags": detail.get("topic_tags", []),
+        "test_cases": generated["test_cases"],
+        "starter_code": generated["starter_code"],
+    }
 
-    db.problems.update_one(
-        {"id": slug},
-        {"$set": update_fields},
-        upsert=True,
-    )
+    db.problems.update_one({"id": slug}, {"$set": doc}, upsert=True)
 
     updated = db.problems.find_one({"id": slug}, {"_id": 0})
     if not updated:

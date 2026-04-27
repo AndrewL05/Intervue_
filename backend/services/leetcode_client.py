@@ -1,9 +1,9 @@
-import html
 import logging
-import re
 import time
 
 import httpx
+
+from services.html_utils import strip_html
 
 logger = logging.getLogger(__name__)
 
@@ -15,16 +15,6 @@ _list_cache: list[dict] | None = None
 _list_cache_at: float = 0.0
 _detail_cache: dict[str, dict] = {}
 _detail_cache_at: dict[str, float] = {}
-
-
-def _strip_html(text: str) -> str:
-    """Strip HTML tags, decode entities, preserve paragraph structure."""
-    text = html.unescape(text)
-    text = re.sub(r"<br\s*/?>", "\n", text, flags=re.IGNORECASE)
-    text = re.sub(r"</?p[^>]*>", "\n", text, flags=re.IGNORECASE)
-    text = re.sub(r"<li[^>]*>", "\n• ", text, flags=re.IGNORECASE)
-    text = re.sub(r"<[^>]+>", "", text)
-    return re.sub(r"\n{3,}", "\n\n", text).strip()
 
 
 async def fetch_problem_list(limit: int = 200) -> list[dict]:
@@ -69,7 +59,7 @@ async def fetch_problem_detail(slug: str) -> dict | None:
             "title": data.get("questionTitle", data.get("title", "")),
             "titleSlug": data.get("titleSlug", slug),
             "difficulty": data.get("difficulty", ""),
-            "description": _strip_html(raw_html),
+            "description": strip_html(raw_html),
             "topic_tags": [t["name"] for t in data.get("topicTags", [])],
             "hints": data.get("hints", []),
             "example_testcases": data.get("exampleTestcases", ""),
