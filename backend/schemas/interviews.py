@@ -19,6 +19,7 @@ class CreateSessionRequest(BaseModel):
     behavioral_persona: BehavioralPersona | None = None
     resume_text: str | None = None
     resume_s3_url: str | None = None
+    problem_id: str | None = None
 
 
 class CreateBehavioralSessionRequest(BaseModel):

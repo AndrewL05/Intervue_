@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -27,6 +27,8 @@ interface SetupState {
   resumeFile: File | null
   resumeText: string
   resumeS3Url: string
+  // Deep-link preset
+  problemId: string | undefined
 }
 
 const ROLES = [
@@ -132,22 +134,32 @@ const slideVariants = {
 export function Setup() {
   const navigate = useNavigate()
   const { getToken } = useAuth()
-  const [step, setStep] = useState(1)
+  const [searchParams] = useSearchParams()
+
+  const presetType = (searchParams.get('type') ?? '') as InterviewType
+  const presetRole = searchParams.get('role') ?? ''
+  const presetCompany = searchParams.get('company') ?? ''
+  const presetDifficulty = (searchParams.get('difficulty') ?? '') as Difficulty | ''
+  const presetProblemId = searchParams.get('problem_id') ?? ''
+  const hasPreset = presetType === 'technical' && !!presetRole && !!presetCompany && !!presetDifficulty && !!presetProblemId
+
+  const [step, setStep] = useState(hasPreset ? 5 : 1)
   const [loading, setLoading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
-  
+
   const [state, setState] = useState<SetupState>({
-    interviewType: '',
+    interviewType: presetType,
     behavioralPersona: '',
-    role: '',
-    company: '',
-    difficulty: '',
+    role: presetRole,
+    company: presetCompany,
+    difficulty: presetDifficulty,
     technicalPersona: '',
-    durationMinutes: undefined,
+    durationMinutes: hasPreset ? 45 : undefined,
     resumeFile: null,
     resumeText: '',
     resumeS3Url: '',
+    problemId: presetProblemId || undefined,
   })
 
   const total = totalSteps(state.interviewType)
@@ -264,13 +276,19 @@ export function Setup() {
             difficulty: state.difficulty,
             duration_minutes: state.durationMinutes,
             interviewer_tone: state.technicalPersona,
+            ...(state.problemId ? { problem_id: state.problemId } : {}),
           }),
         })
       }
 
       navigate(`/interview/${session.id}/${session.mode === 'behavioral' || session.mode === 'resume' ? 'behavioral' : 'technical'}`)
     } catch (err) {
-      toast.error('Failed to create session. Is the backend running?')
+      const msg = err instanceof Error ? err.message : ''
+      if (msg.includes('generate-tests') || msg.includes('no test cases')) {
+        toast.error('Problem not ready — test cases still generating. Try again in a moment.')
+      } else {
+        toast.error('Failed to create session')
+      }
       console.error(err)
     } finally {
       setLoading(false)

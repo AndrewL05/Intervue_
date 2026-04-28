@@ -1,30 +1,24 @@
 import json
+import logging
 from pathlib import Path
 from models.code_submission import SubmissionStatus
 from services.judge0 import submit_to_judge0
+from db import db
 
-_PROBLEMS_PATH = Path(__file__).parent.parent / "problems" / "problems.json"
-_problems_cache: dict[str, dict] | None = None
-
-
-def _load_all_problems() -> dict[str, dict]:
-    global _problems_cache
-    if _problems_cache is None:
-        with open(_PROBLEMS_PATH, encoding="utf-8") as f:
-            problems_list = json.load(f)
-        _problems_cache = {p["id"]: p for p in problems_list}
-    return _problems_cache
+logger = logging.getLogger(__name__)
 
 
 def load_problem(problem_id: str) -> dict | None:
-    return _load_all_problems().get(problem_id)
+    return db.problems.find_one({"id": problem_id})
 
 
 def load_all_problems() -> list[dict]:
-    return list(_load_all_problems().values())
+    return list(db.problems.find({}))
 
 
 def aggregate_status(statuses: list[SubmissionStatus]) -> SubmissionStatus:
+    if not statuses:
+        return SubmissionStatus.wrong_answer
     if SubmissionStatus.compile_error in statuses:
         return SubmissionStatus.compile_error
     if all(s == SubmissionStatus.accepted for s in statuses):

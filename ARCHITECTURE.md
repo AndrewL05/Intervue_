@@ -29,9 +29,9 @@ The system is composed of **4 main layers**:
 - Handles all core logic  
 
 ## 3. External AI + Data Services
-- Tavily → research & retrieval  
 - ElevenLabs → voice + transcription  
-- Featherless → LLM feedback + reasoning  
+- Groq / Featherless AI → LLM (feedback, question generation, test case generation)  
+- alfa-leetcode-api → LeetCode problem catalog  
 
 ## 4. Database
 - MongoDB → persistent storage  
@@ -79,22 +79,23 @@ This is the **central coordinator of the system**.
 
 ---
 
-## 3.2 Retrieval Service
+## 3.2 Problems Service
 
-Handles **question + company research**
+Handles **coding problem catalog and test case generation**
 
 ### Responsibilities
-- Fetch interview questions  
-- Retrieve company-specific patterns  
-- Call Tavily for external research  
-- Normalize and structure results  
+- Serve paginated problem list (local seed + alfa-leetcode-api)  
+- Fetch and parse LeetCode problem detail (description, examples, constraints)  
+- Generate stdin/stdout test cases and starter code via LLM  
+- Cache enriched problems in MongoDB  
+- Track per-user solved problems  
 
-### External dependency
-- Tavily API  
+### External dependencies
+- alfa-leetcode-api (problem data)  
+- Groq / Featherless AI (test case + starter code generation)  
 
 ### Output
-- Structured interview questions  
-- Company insights  
+- Structured problems with test cases and multi-language starter code  
 
 ---
 
@@ -129,14 +130,15 @@ Handles **post-interview evaluation**
 - Evaluate technical explanation  
 - Generate structured feedback  
 - Produce scorecard  
+- Generate shareable HTML report (uploaded to S3)  
 
 ### External dependency
-- Featherless AI (LLMs like Qwen / DeepSeek)  
+- Groq (primary — `llama-3.1-8b-instant`) / Featherless AI (fallback — `Meta-Llama-3.1-8B-Instruct`)  
 
 ### Output
-- Scores  
-- Strengths / weaknesses  
-- Improvement suggestions  
+- Overall score + category scores  
+- Per-question strengths, improvements, better-answer examples  
+- Top strengths / weaknesses, targeted drills  
 
 ---
 
@@ -158,15 +160,15 @@ Handles **user-level insights**
 
 ---
 
-## 4.1 Tavily (Retrieval Layer)
+## 4.1 alfa-leetcode-api (Problem Catalog)
 
 ### Used by:
-- Retrieval Service  
+- Problems Service  
 
 ### Purpose
-- Fetch real-world interview questions  
-- Gather company-specific patterns  
-- Enrich interview realism  
+- Fetch paginated LeetCode problem list  
+- Fetch per-problem detail (description, examples, constraints, example test cases)  
+- Source for LLM-enriched test case generation  
 
 ---
 
@@ -182,36 +184,51 @@ Handles **user-level insights**
 
 ---
 
-## 4.3 Featherless AI (LLM Layer)
+## 4.3 LLM Layer (Groq / Featherless AI)
 
 ### Used by:
 - Feedback Service  
+- Problems Service (test case + starter code generation)  
+- Question Planner (behavioral + resume question generation)  
 
 ### Purpose
-- Transcript analysis  
-- Scoring + reasoning  
+- Transcript analysis and scoring  
 - Structured feedback generation  
+- Stdin/stdout test case generation for LeetCode problems  
+- STAR behavioral question generation  
 
-### Example models
-- Qwen2.5  
-- DeepSeek R1  
+### Models
+- Groq: `llama-3.1-8b-instant` (primary — lower latency)  
+- Featherless AI: `Meta-Llama-3.1-8B-Instruct` (fallback)  
 
 ---
 
-# 5. Database Layer (MongoDB)
+# 5. Storage Layer
 
-### Stores:
-- Users  
-- Interview sessions  
-- Questions  
-- Transcripts  
-- Code submissions  
-- Feedback reports  
+## MongoDB
+
+### Collections:
+- `sessions` — interview session documents  
+- `questions` — per-session question list  
+- `users` — user records  
+- `transcript_segments` — synced ElevenLabs transcript  
+- `code_submissions` — run/submit results  
+- `feedback` — generated feedback reports  
+- `problems` — LeetCode problems enriched with test cases + starter code  
+- `solved_problems` — per-user solved problem tracking  
+- `rate_limits` — TTL-indexed per-user rate limit counters  
 
 ### Why MongoDB
 - Flexible schema  
 - Fits nested interview data  
 - Good for transcripts + JSON feedback  
+
+## AWS S3
+
+### Stores:
+- `resumes/{user_id}/{uuid}.pdf` — uploaded resume PDFs  
+- `sessions/{id}/code_snapshots/snapshot_NNNN.json` — periodic code snapshots during interviews  
+- `reports/{session_id}/feedback.html` — shareable HTML feedback reports (7-day presigned URLs)  
 
 ---
 
@@ -223,10 +240,9 @@ Handles **user-level insights**
 
 1. Frontend → FastAPI  
 2. FastAPI → Session Service  
-3. Session Service → Retrieval Service  
-4. Retrieval Service → Tavily  
-5. Questions returned  
-6. Session stored in MongoDB  
+3. Session Service → Question Planner (behavioral/resume: LLM; technical: MongoDB problems pool or specific problem)  
+4. ElevenLabs agent created with session context  
+5. Session + questions stored in MongoDB  
 
 ---
 
@@ -259,7 +275,7 @@ Handles **user-level insights**
 
 1. User writes code (frontend)  
 2. Frontend → FastAPI (`/run` or `/submit`)  
-3. FastAPI → Code execution layer (Piston/Judge0)  
+3. FastAPI → Judge0 CE (via RapidAPI)  
 4. Results returned  
 5. Stored in MongoDB  
 

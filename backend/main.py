@@ -10,6 +10,8 @@ from routes.feedback import router as feedback_router
 from routes.companies import router as companies_router
 from routes.upload import router as upload_router
 from routes.tts import router as tts_router
+from routes.problems import router as problems_router
+from services.problems_seed import seed_problems
 from config import settings
 from db import db
 import httpx
@@ -34,6 +36,7 @@ app.include_router(feedback_router)
 app.include_router(companies_router)
 app.include_router(upload_router)
 app.include_router(tts_router)
+app.include_router(problems_router)
 
 @app.get("/")
 def root():
@@ -76,3 +79,12 @@ async def eleven_test():
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers)
         return response.json()
+
+@app.on_event("startup")
+def startup():
+    seed_problems()
+    db.solved_problems.create_index(
+        [("clerk_user_id", 1), ("problem_slug", 1)],
+        unique=True,
+        name="solved_problems_user_slug_unique",
+    )

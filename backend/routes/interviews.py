@@ -8,7 +8,7 @@ from auth.clerk import require_auth
 from db import db
 from models.interview_session import InterviewSession, SessionStatus
 from routes._helpers import session_to_response
-from models.question import Question
+from models.question import Question, QuestionType
 from schemas.interviews import (
     AgentUrlResponse,
     CreateSessionRequest,
@@ -69,6 +69,21 @@ async def create_session(
         if not body.resume_text:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Resume text is required for resume mode")
         questions = await plan_resume_questions(session_id, body.resume_text, body.duration_minutes)
+    elif body.problem_id:
+        raw = load_problem(body.problem_id)
+        if not raw or not raw.get("test_cases"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Problem '{body.problem_id}' has no test cases. Call POST /api/problems/{{slug}}/generate-tests first.",
+            )
+        questions = [Question(
+            session_id=session_id,
+            order=0,
+            type=QuestionType.technical,
+            prompt=raw.get("prompt", raw.get("description", "")),
+            follow_up_tree=[],
+            coding_problem_id=raw["id"],
+        )]
     else:
         questions = plan_questions(session_id, body.mode, body.difficulty, body.duration_minutes)
         

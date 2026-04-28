@@ -1,4 +1,4 @@
-# Intervue -- Hack Brooklyn 2026
+# Intervue 
 
 ## Table of Contents
 
@@ -31,21 +31,23 @@ Most interview prep tools are static: you read a question on a screen and type a
 
 * **Frontend:** React, TypeScript, Tailwind CSS, Clerk
 * **Backend:** FastAPI, Python, WebSocket, Judge0 (code execution)
-* **Voice/AI:** ElevenLabs, Tavily, Featherless (Gemini 2.0 Flash), Groq
+* **Voice/AI:** ElevenLabs, Tavily, Groq (Llama 3.1 8B), Featherless
 * **Database:** MongoDB
+* **Storage:** AWS S3 (resumes, code snapshots, feedback reports)
 
 
 ## Getting Started
 
 ### Prerequisites
-* Python 3.10+
+* Python 3.10+, Node 18+
 * API Keys for:
-    - Clerk
+    - Clerk (publishable + secret)
     - ElevenLabs
-    - Groq
-    - Judge0
+    - Groq (primary LLM) or Featherless (fallback)
+    - Judge0 (via RapidAPI)
     - MongoDB
     - Tavily
+    - AWS S3 (access key, secret key, bucket name) — optional, needed for resume upload and code snapshots
 
 ### Installation
 1.  **Clone the repo:**

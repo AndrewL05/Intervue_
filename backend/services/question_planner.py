@@ -129,7 +129,9 @@ def plan_questions(
     n = _technical_question_count(duration_minutes)
     all_problems = load_all_problems()
     diff_str = difficulty.value if difficulty else Difficulty.medium.value
-    pool = [p for p in all_problems if p.get("difficulty") == diff_str]
+    pool = [p for p in all_problems if p.get("difficulty") == diff_str and p.get("test_cases")]
+    if not pool:
+        pool = [p for p in all_problems if p.get("test_cases")]
     if not pool:
         pool = all_problems
 
@@ -140,7 +142,7 @@ def plan_questions(
             session_id=session_id,
             order=i,
             type=QuestionType.technical,
-            prompt=problem["prompt"],
+            prompt=problem.get("prompt", problem.get("description", "")),
             follow_up_tree=[],
             coding_problem_id=problem["id"],
         ))
