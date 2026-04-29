@@ -23,6 +23,7 @@ from services.elevenlabs import create_interview_agent, get_signed_url, sync_tra
 from services.tts_cache import prewarm as tts_prewarm
 from services.feedback import generate_feedback
 from services.question_planner import plan_questions
+from redis_client import get_redis
 
 logger = logging.getLogger(__name__)
 
@@ -243,6 +244,12 @@ async def patch_session(
     # Generate feedback whenever a session ends (with or without ElevenLabs)
     if session_completed:
         background_tasks.add_task(generate_feedback, session_id)
+
+    if session_completed:
+        try:
+            await get_redis().delete(f"session:{session_id}:state")
+        except Exception as exc:
+            logger.warning("Failed to delete session state from Redis: %s", exc)
 
     return session_to_response(doc)
 
