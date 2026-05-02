@@ -14,8 +14,9 @@ _DETAIL_CACHE_TTL = 21600
 
 
 async def fetch_problem_list(limit: int = 200) -> list[dict]:
+    cache_key = f"problems:catalog:{limit}"
     try:
-        cached = await get_redis().get("problems:catalog")
+        cached = await get_redis().get(cache_key)
         if cached:
             return json.loads(cached)
     except Exception as exc:
@@ -28,7 +29,7 @@ async def fetch_problem_list(limit: int = 200) -> list[dict]:
             data = resp.json()
         result = data.get("problemsetQuestionList", [])
         try:
-            await get_redis().setex("problems:catalog", _LIST_CACHE_TTL, json.dumps(result))
+            await get_redis().setex(cache_key, _LIST_CACHE_TTL, json.dumps(result))
         except Exception as exc:
             logger.warning("Failed to write problem list to Redis: %s", exc)
         return result
