@@ -90,13 +90,13 @@ function stepLabel(step: number, interviewType: InterviewType): { eyebrow: strin
 
   if (interviewType === 'behavioral') {
     if (step === 2) return { eyebrow: 'STEP 02 — DURATION', title: 'How long do you have?', subtitle: 'We\'ll pace the questions to fit your window.' }
-    if (step === 3) return { eyebrow: 'STEP 03 — INTERVIEWER', title: "Who's grilling you today?", subtitle: 'Pick a persona. Each has a different pace and follow-up style.' }
+    if (step === 3) return { eyebrow: 'STEP 03 — INTERVIEWER', title: "Interviewer", subtitle: 'Pick a persona. Each has a different pace and follow-up style.' }
   }
 
   if (interviewType === 'resume') {
     if (step === 2) return { eyebrow: 'STEP 02 — RESUME', title: 'Upload your resume', subtitle: 'We\'ll tailor every question to your specific experience.' }
     if (step === 3) return { eyebrow: 'STEP 03 — DURATION', title: 'How long do you have?', subtitle: 'We\'ll pace the questions to fit your window.' }
-    if (step === 4) return { eyebrow: 'STEP 04 — INTERVIEWER', title: "Who's grilling you today?", subtitle: 'Pick a persona. Each has a different pace and follow-up style.' }
+    if (step === 4) return { eyebrow: 'STEP 04 — INTERVIEWER', title: "Interviewer", subtitle: 'Pick a persona. Each has a different pace and follow-up style.' }
   }
 
   if (interviewType === 'technical') {
@@ -104,7 +104,7 @@ function stepLabel(step: number, interviewType: InterviewType): { eyebrow: strin
     if (step === 3) return { eyebrow: 'STEP 03 — COMPANY', title: 'Which company should we tailor for?', subtitle: 'We\'ll adapt the style and focus areas to match their loop.' }
     if (step === 4) return { eyebrow: 'STEP 04 — DIFFICULTY', title: 'How hard should we push?', subtitle: 'This sets the problem tier and follow-up depth.' }
     if (step === 5) return { eyebrow: 'STEP 05 — DURATION', title: 'How long do you have?', subtitle: 'We\'ll pace the problem to fit your window.' }
-    if (step === 6) return { eyebrow: 'STEP 06 — INTERVIEWER', title: "Who's grilling you today?", subtitle: 'Pick a persona. Each has a different pace and follow-up style.' }
+    if (step === 6) return { eyebrow: 'STEP 06 ', title: "Interviewer", subtitle: 'Pick a persona. Each has a different pace and follow-up style.' }
   }
 
   return { eyebrow: '', title: '', subtitle: '' }
@@ -382,17 +382,10 @@ export function Setup() {
     <div className="min-h-screen" style={{ background: '#FAFAF7' }}>
 
       {/* ── Top bar ── */}
-      <div className="border-b border-black/[0.06] bg-[#FAFAF7]" style={{ padding: '18px 36px' }}>
+      <div className="bg-[#FAFAF7]" style={{ padding: '18px 36px' }}>
         <div className="mx-auto max-w-5xl flex items-center gap-4">
           {/* Logo + step label */}
           <div className="flex items-center gap-3 shrink-0">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path d="M4 18 L12 4 L20 18 L15 18 L12 12 L9 18 Z" fill="#0B0B0E" />
-              <circle cx="19.5" cy="4.5" r="2.2" fill="#F5612B" />
-            </svg>
-            <span className="font-semibold text-[#0B0B0E]" style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>
-              Intervue
-            </span>
           </div>
 
           <span className="font-mono text-[11px] uppercase tracking-widest text-[#9C9CA3] ml-4">

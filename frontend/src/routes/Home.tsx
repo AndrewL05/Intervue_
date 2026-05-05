@@ -44,12 +44,21 @@ function TypingCode({ active }: { active: boolean }) {
 
   useEffect(() => {
     if (!active) return
-    setTick(0)
     const id = setInterval(() => setTick(t => (t >= total + 40 ? 0 : t + 1)), 28)
-    return () => clearInterval(id)
+    return () => {
+      clearInterval(id)
+      setTick(0)
+    }
   }, [active, total])
 
-  let consumed = 0
+  const lineOffsets = CODE_LINES.reduce<{ offs: number[]; cur: number }>(
+    ({ offs, cur }, toks) => {
+      const len = toks.map(t => t[1]).join('').length + 1
+      return { offs: [...offs, cur], cur: cur + len }
+    },
+    { offs: [], cur: 0 }
+  ).offs
+
   return (
     <div style={{
       background: '#FCFBF7',
@@ -71,8 +80,7 @@ function TypingCode({ active }: { active: boolean }) {
       </div>
       {CODE_LINES.map((toks, li) => {
         const lineText = toks.map(t => t[1]).join('')
-        const start = consumed
-        consumed += lineText.length + 1
+        const start = lineOffsets[li]
         const localTick = Math.max(0, Math.min(lineText.length, tick - start))
         let printed = 0
         return (
@@ -99,9 +107,9 @@ function TypingCode({ active }: { active: boolean }) {
 // ── Animated transcript ──────────────────────────────────
 const TRANSCRIPT_LINES = [
   { who: 'int' as const, t: 'Walk me through your approach before you write anything.' },
-  { who: 'you' as const, t: 'Hash map. Store complements as I iterate — O(n) time, O(n) space.' },
+  { who: 'you' as const, t: 'I\'m planning on using a hash map to store complements as I iterate — O(n) time, O(n) space.' },
   { who: 'int' as const, t: 'What if the array has duplicates?' },
-  { who: 'you' as const, t: "Doesn't matter — first match wins. The map only needs the earlier index." },
+  { who: 'you' as const, t: "I don't think it would matter, the first match wins. The map only needs the earlier index." },
   { who: 'int' as const, t: 'Nice. Code it up.' },
 ]
 
@@ -109,12 +117,10 @@ function Transcript({ active }: { active: boolean }) {
   const [shown, setShown] = useState(0)
   useEffect(() => {
     if (!active) return
-    setShown(0)
     let i = 0
     const id = setInterval(() => {
-      i++
-      if (i > TRANSCRIPT_LINES.length + 3) i = 0
       setShown(i)
+      i = i >= TRANSCRIPT_LINES.length + 3 ? 0 : i + 1
     }, 1100)
     return () => clearInterval(id)
   }, [active])
@@ -144,7 +150,7 @@ function Transcript({ active }: { active: boolean }) {
             border: `1px solid ${l.who === 'int' ? 'rgba(11,11,14,0.06)' : 'rgba(245,97,43,0.20)'}`,
             minWidth: 36, textAlign:'center',
           }}>
-            {l.who === 'int' ? 'INT' : 'YOU'}
+            {l.who === 'int' ? 'AI' : 'YOU'}
           </span>
           <p style={{ fontSize:13.5, lineHeight:1.55, color:'#1F1F23' }}>{l.t}</p>
         </div>
